@@ -22,15 +22,16 @@ enum class VisionStatus : std::uint8_t
 struct VisionObservation
 {
     // Header 정보
-    std::int32_t stamp_sec = 0;
-    std::uint32_t stamp_nanosec = 0;
-    std::string frame_id = "base_footprint";
+    std::int32_t stamp_sec = 0; // topic: 메시지 수신 데이터의 초 단위 시간
+    std::uint32_t stamp_nanosec = 0; // topic: 나노초 단위 시간 
+    std::string frame_id = "base_footprint"; // topic: 좌표계 정보
+
 
     // Vision 처리 상태
-    VisionStatus status = VisionStatus::NO_DETECTION;
+    VisionStatus status = VisionStatus::NO_DETECTION; // topic: Vision 처리 상태
 
     // 해당 프레임에서 검출된 Landmark 목록
-    std::vector<LandmarkObservation> detections;
+    std::vector<LandmarkObservation> detections; // topic: 검출된 landmark 목록 
 };
 
 #endif

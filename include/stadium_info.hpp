@@ -1,4 +1,3 @@
-
 #ifndef STADIUM_INFO_HPP
 #define STADIUM_INFO_HPP
 

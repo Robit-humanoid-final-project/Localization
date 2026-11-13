@@ -35,6 +35,7 @@ public:
     }
 
 protected:
+    //UI에 표시
     void paintEvent(QPaintEvent *) override
     {
         QPainter painter(this);
@@ -56,6 +57,7 @@ protected:
             
             QColor color;
 
+            // LTXG 색상 설정 
             switch (landmark.type)
             {
                 case 0: color = Qt::red; break;
@@ -101,16 +103,15 @@ public:
     }
 
 protected:
+    // UI에 표시
     void paintEvent(QPaintEvent *) override
     {
         QPainter painter(this);
         painter.setRenderHint(QPainter::Antialiasing);
 
-        const double scaleX =
-            width() / (StadiumInfo::A + 2 * StadiumInfo::K);
+        const double scaleX = width() / (StadiumInfo::A + 2 * StadiumInfo::K);
 
-        const double scaleY =
-            height() / (StadiumInfo::B + 2 * StadiumInfo::K);
+        const double scaleY = height() / (StadiumInfo::B + 2 * StadiumInfo::K);
 
         // Particle 표시 스타일
         painter.setPen(Qt::NoPen);
@@ -119,20 +120,12 @@ protected:
         for (const auto& particle : particles_)
         {
             // 월드 좌표 -> 화면 좌표
-            const double px =
-                (particle.x + StadiumInfo::A / 2.0
-                 + StadiumInfo::K) * scaleX;
+            const double px = (particle.x + StadiumInfo::A / 2.0 + StadiumInfo::K) * scaleX;
 
-            const double py =
-                (StadiumInfo::B / 2.0
-                 + StadiumInfo::K - particle.y) * scaleY;
+            const double py = (StadiumInfo::B / 2.0 + StadiumInfo::K - particle.y) * scaleY;
 
             // Particle 표시
-            painter.drawEllipse(
-                QPointF(px, py),
-                2.0,
-                2.0
-            );
+            painter.drawEllipse(QPointF(px, py),2.0,2.0);
         }
     }
 
@@ -164,17 +157,13 @@ protected:
         painter.setRenderHint(QPainter::Antialiasing);
 
         // 경기장 좌표를 화면 좌표로 변환
-        const double scaleX =
-            width() / (StadiumInfo::A + 2 * StadiumInfo::K);
+        const double scaleX = width() / (StadiumInfo::A + 2 * StadiumInfo::K);
 
-        const double scaleY =
-            height() / (StadiumInfo::B + 2 * StadiumInfo::K);
+        const double scaleY = height() / (StadiumInfo::B + 2 * StadiumInfo::K);
 
-        const double px =
-            (pose_.x + StadiumInfo::A / 2.0 + StadiumInfo::K) * scaleX;
+        const double px = (pose_.x + StadiumInfo::A / 2.0 + StadiumInfo::K) * scaleX;
 
-        const double py =
-            (StadiumInfo::B / 2.0 + StadiumInfo::K - pose_.y) * scaleY;
+        const double py = (StadiumInfo::B / 2.0 + StadiumInfo::K - pose_.y) * scaleY;
 
         // 로봇 크기
         constexpr double ROBOT_RADIUS = 16.0;
@@ -186,36 +175,23 @@ protected:
         painter.setBrush(QColor(0, 180, 0));
         painter.setPen(QPen(Qt::black, 2));
 
-        painter.drawEllipse(
-            QPointF(px, py),
-            ROBOT_RADIUS,
-            ROBOT_RADIUS
-        );
+        painter.drawEllipse(QPointF(px, py), ROBOT_RADIUS, ROBOT_RADIUS);
 
         // 진행 방향 계산
-        const double headingX =
-            px + HEADING_LENGTH * std::cos(pose_.yaw);
+        const double headingX = px + HEADING_LENGTH * std::cos(pose_.yaw);
 
-        const double headingY =
-            py - HEADING_LENGTH * std::sin(pose_.yaw);
+        const double headingY = py - HEADING_LENGTH * std::sin(pose_.yaw);
 
         // 방향 표시선
         painter.setPen(QPen(Qt::black, 3));
 
-        painter.drawLine(
-            QPointF(px, py),
-            QPointF(headingX, headingY)
-        );
+        painter.drawLine(QPointF(px, py), QPointF(headingX, headingY));
 
         // 로봇 중심점
         painter.setBrush(Qt::white);
         painter.setPen(Qt::NoPen);
 
-        painter.drawEllipse(
-            QPointF(px, py),
-            3,
-            3
-        );
+        painter.drawEllipse(QPointF(px, py), 3, 3);
     }
 
 private:
@@ -229,14 +205,13 @@ int main(int argc, char *argv[])
     // UI 파일 로드
     QUiLoader loader;
 
-    QString uiPath =
-        "/home/choiyuns/Desktop/robit/예비/Final Project/Localization/Localization.ui";
+    QString uiPath = "/home/choiyuns/Desktop/robit/예비/Final Project/Localization/Localization.ui";
 
     QFile file(uiPath);
 
     if (!file.open(QFile::ReadOnly))
     {
-        qDebug() << "UI 파일 열기 실패:" << file.errorString();
+        qDebug() << "ERROR: UI 파일 열기 실패:" << file.errorString();
         return -1;
     }
 
@@ -247,7 +222,7 @@ int main(int argc, char *argv[])
 
     if (!window)
     {
-        qDebug() << "UI 로드 실패:" << loader.errorString();
+        qDebug() << "ERROR: UI 로드 실패:" << loader.errorString();
         return -1;
     }
 
@@ -263,14 +238,14 @@ int main(int argc, char *argv[])
     groundTruth.yaw = 0.0;
 
     // MCL 객체 생성 및 Particle 초기화
-    MCL mcl(2000);
+    //particle 2000개 생성
+    MCL mcl(2000); 
 
     // 이동 전 첫 번째 Particle 저장
     Particle before = mcl.getParticles()[0];
     
     // Odometry 이동량 설정
     OdometryMove move;
-
 
     move.dx = 1.0;
     move.dy = 0.0;
@@ -294,15 +269,11 @@ int main(int argc, char *argv[])
     qDebug() << "Y:" << after.y;
     qDebug() << "Yaw:" << after.yaw;
 
-    //여기에 추가?
-
     VisionObservation observation;
     observation.status = VisionStatus::OK;
 
     // 관측할 랜드마크 인덱스
-    const std::array<int, 4> landmark_indices = {
-        2, 6, 10, 12
-    };
+    const std::array<int, 4> landmark_indices = {2, 6, 10, 12};
 
     for (std::size_t i = 0; i < landmark_indices.size(); ++i)
     {
