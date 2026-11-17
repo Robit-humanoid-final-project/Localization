@@ -1,3 +1,13 @@
+## requirment
+
+```
+#패키지 이름 
+robot_vision
+humanoid_interface
+insta360_usb_cam
+Localization
+```
+
 ## 빌드
 
 ```
