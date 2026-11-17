@@ -1,0 +1,4 @@
+# CMake generated build artifacts
+/build/
+/build_mcl/
+/cmake-build-*/

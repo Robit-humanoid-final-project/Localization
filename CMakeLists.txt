@@ -10,9 +10,9 @@ set(CMAKE_AUTORCC ON)
 find_package(Qt6 REQUIRED COMPONENTS Widgets UiTools)
 
 add_executable(MyProject
-    main.cpp
+    src/main.cpp
     Localization.ui
-    src/odometry.cpp
+    src/Odometry/odometry.cpp
     src/particle.cpp
     src/mcl.cpp
     src/stadium_info.cpp
