@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1416</width>
-    <height>1045</height>
+    <width>1877</width>
+    <height>1100</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -27,7 +27,297 @@
      <string/>
     </property>
     <property name="pixmap">
-     <pixmap>/home/choiyuns/Desktop/robit/예비/Final Project/Localization/stadium.png</pixmap>
+     <pixmap>/home/choiyuns/Desktop/robit/예비/Final Project/MCL/stadium.png</pixmap>
+    </property>
+   </widget>
+   <widget class="QGroupBox" name="Particle_parameter">
+    <property name="geometry">
+     <rect>
+      <x>240</x>
+      <y>810</y>
+      <width>311</width>
+      <height>231</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Particle parameter</string>
+    </property>
+    <widget class="QLabel" name="particle_num_label">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>30</y>
+       <width>66</width>
+       <height>19</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Particle </string>
+     </property>
+    </widget>
+    <widget class="QRadioButton" name="radioButton">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>90</y>
+       <width>111</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>1500</string>
+     </property>
+    </widget>
+    <widget class="QRadioButton" name="radioButton_2">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>120</y>
+       <width>111</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>2000</string>
+     </property>
+    </widget>
+    <widget class="QRadioButton" name="radioButton_3">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>150</y>
+       <width>111</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>2500</string>
+     </property>
+    </widget>
+    <widget class="QSpinBox" name="particle_num">
+     <property name="geometry">
+      <rect>
+       <x>130</x>
+       <y>70</y>
+       <width>111</width>
+       <height>28</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="particle_reset">
+     <property name="geometry">
+      <rect>
+       <x>140</x>
+       <y>120</y>
+       <width>88</width>
+       <height>51</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>reset</string>
+     </property>
+    </widget>
+    <widget class="QRadioButton" name="radioButton_4">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>180</y>
+       <width>111</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>3000</string>
+     </property>
+    </widget>
+    <widget class="QRadioButton" name="radioButton_5">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>60</y>
+       <width>111</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>1000</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QGroupBox" name="Controller">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>810</y>
+      <width>231</width>
+      <height>231</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Controller</string>
+    </property>
+    <widget class="QPushButton" name="start">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>50</y>
+       <width>88</width>
+       <height>51</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>start</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="step">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>130</y>
+       <width>88</width>
+       <height>51</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>step</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pause">
+     <property name="geometry">
+      <rect>
+       <x>110</x>
+       <y>50</y>
+       <width>88</width>
+       <height>51</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>pause</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="reset">
+     <property name="geometry">
+      <rect>
+       <x>110</x>
+       <y>130</y>
+       <width>88</width>
+       <height>51</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>reset</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QGroupBox" name="MCL_parameter">
+    <property name="geometry">
+     <rect>
+      <x>550</x>
+      <y>810</y>
+      <width>331</width>
+      <height>231</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Motion parameter</string>
+    </property>
+    <widget class="QLabel" name="motionnoise_label">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>40</y>
+       <width>111</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Motion Nosise</string>
+     </property>
+    </widget>
+    <widget class="QSpinBox" name="Motion_Noise">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>80</y>
+       <width>191</width>
+       <height>28</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="Sensor_Sigma_label">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>130</y>
+       <width>111</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Sensor Sigma</string>
+     </property>
+    </widget>
+    <widget class="QSpinBox" name="sensor_sigma">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>160</y>
+       <width>191</width>
+       <height>28</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="motion_noise_reset">
+     <property name="geometry">
+      <rect>
+       <x>210</x>
+       <y>80</y>
+       <width>81</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>reset</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="sensor_sigma_reset">
+     <property name="geometry">
+      <rect>
+       <x>210</x>
+       <y>160</y>
+       <width>81</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>reset</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QLabel" name="vision">
+    <property name="geometry">
+     <rect>
+      <x>1100</x>
+      <y>0</y>
+      <width>771</width>
+      <height>771</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>                                                                                         VIsion Display</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_2">
+    <property name="geometry">
+     <rect>
+      <x>1100</x>
+      <y>800</y>
+      <width>771</width>
+      <height>251</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>                                                                                           Vision Log</string>
     </property>
    </widget>
   </widget>
@@ -36,7 +326,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1416</width>
+     <width>1877</width>
      <height>24</height>
     </rect>
    </property>

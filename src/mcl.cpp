@@ -31,7 +31,7 @@ const std::vector<Particle>& MCL::getParticles() const
 void MCL::prediction(const OdometryMove& move)
 {
     
-    // Motion Noise 표준편차
+    // Motion Noise 표준 편차
     constexpr double NOISE_X = 0.02;
     constexpr double NOISE_Y = 0.02;
     constexpr double NOISE_YAW = 0.01;
@@ -42,6 +42,7 @@ void MCL::prediction(const OdometryMove& move)
     static std::mt19937 generator(std::random_device{}());
 
     // Gaussian Noise 분포
+    // std::normal_distribution: 정규 분포 객체 
     std::normal_distribution<double> noise_x(0.0, NOISE_X);
     std::normal_distribution<double> noise_y(0.0, NOISE_Y);
     std::normal_distribution<double> noise_yaw(0.0, NOISE_YAW);
@@ -66,10 +67,14 @@ void MCL::prediction(const OdometryMove& move)
 
         // Yaw 정규화
         while (particle.yaw >= PI)
+        {
             particle.yaw -= 2.0 * PI;
+        }
 
         while (particle.yaw < -PI)
+        {
             particle.yaw += 2.0 * PI;
+        }
     }
 }
 
@@ -174,14 +179,10 @@ RobotPose MCL::estimatePose() const
 }
 
 
-// ========================================
 // Calculate Landmark Likelihood
 // ========================================
 
-double MCL::calculateLandmarkLikelihood(
-    const Particle& particle,
-    const LandmarkObservation& observation
-) const
+double MCL::calculateLandmarkLikelihood(const Particle& particle, const LandmarkObservation& observation) const
 {
     std::array<Landmarks, 16> landmarks;
     definelandmarks(landmarks);
@@ -241,13 +242,11 @@ double MCL::calculateLandmarkLikelihood(
     );
 }
 
-// ========================================
+
 // Calculate Particle Weights
 // ========================================
 
-void MCL::calculateWeights(
-    const VisionObservation& observation
-)
+void MCL::calculateWeights(const VisionObservation& observation)
 {
     // 정상적인 관측 데이터가 아니면 계산하지 않음
     if (observation.status != VisionStatus::OK ||

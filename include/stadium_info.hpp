@@ -11,11 +11,11 @@ struct StadiumSize
 
 struct Landmarks
 {
-    int type;
-    int detection_id;
-    float confidence;
-    float x;
-    float y;
+    int type; // topic: detection[].type
+    int detection_id; // topic: detection[].detection_id
+    float confidence; // topic: detection[].confidence
+    float x; // topic: detection[].x
+    float y; // topic: detection[].y
 };
 
 struct StadiumInfo

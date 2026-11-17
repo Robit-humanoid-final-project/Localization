@@ -30,10 +30,7 @@ private:
     std::vector<Particle> particles_;
 
     // Landmark 관측값과 예측값의 오차를 이용한 likelihood 계산
-    double calculateLandmarkLikelihood(
-        const Particle& particle,
-        const LandmarkObservation& observation
-    ) const;
+    double calculateLandmarkLikelihood(const Particle& particle, const LandmarkObservation& observation) const;
 };
 
 #endif

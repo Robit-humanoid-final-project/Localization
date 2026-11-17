@@ -6,10 +6,12 @@
 #include <QFile>
 #include <QLabel>
 #include <QPainter>
+#include <QPointF>
 #include <QColor>
 #include <QFileInfo>
 #include <QDebug>
 #include <QDir>
+#include <QString>
 
 #include <array>
 #include <cmath>
@@ -60,10 +62,10 @@ protected:
             // LTXG 색상 설정 
             switch (landmark.type)
             {
-                case 0: color = Qt::red; break;
-                case 1: color = Qt::blue; break;
-                case 2: color = Qt::yellow; break;
-                case 3: color = Qt::magenta; break;
+                case 0: color = Qt::red; break; // L
+                case 1: color = Qt::blue; break; // T
+                case 2: color = Qt::yellow; break; // X
+                case 3: color = Qt::green; break; //G
                 default: color = Qt::white; break;
             }
 
@@ -198,6 +200,142 @@ private:
     RobotPose pose_;
 };
 
+// Draws robot-relative Vision object positions on the field map. When real
+// Vision messages arrive, pass their values and the robot pose at that frame.
+class VisionObjectOverlay : public QWidget
+{
+public:
+    explicit VisionObjectOverlay(QWidget *parent)
+        : QWidget(parent)
+    {
+        setAttribute(Qt::WA_TransparentForMouseEvents);
+        setAttribute(Qt::WA_TranslucentBackground);
+    }
+
+    void setObservation(const VisionObservation& observation,
+                        const RobotPose& robot_pose)
+    {
+        observation_ = observation;
+        robot_pose_ = robot_pose;
+        update();
+    }
+
+protected:
+    void paintEvent(QPaintEvent *) override
+    {
+        if (observation_.status != VisionStatus::OK)
+            return;
+
+        QPainter painter(this);
+        painter.setRenderHint(QPainter::Antialiasing);
+
+        // 공은 목록에 값이 있을 때만 표시한다. (현재 토픽 정의상 최대 1개)
+        for (const auto& ball : observation_.ball)
+        {
+            const QPointF point = robotToPixel(
+                ball.x,
+                ball.y);
+
+            painter.setBrush(QColor(255, 140, 0));
+            painter.setPen(QPen(Qt::black, 1));
+            painter.drawEllipse(point, 9.0, 9.0);
+            painter.drawText(point + QPointF(11.0, -8.0), QStringLiteral("Ball"));
+        }
+
+        // Cones are rendered as position markers. Their common physical size
+        // can be added later if the measured cone radius is needed by the UI.
+        painter.setBrush(QColor(125, 70, 20));
+        painter.setPen(QPen(Qt::black, 1));
+
+        for (const auto& obstacle : observation_.obstacles)
+        {
+            const QPointF point = robotToPixel(obstacle.x, obstacle.y);
+            const QPointF triangle[3] = {
+                point + QPointF(0.0, -9.0),
+                point + QPointF(-8.0, 7.0),
+                point + QPointF(8.0, 7.0)
+            };
+
+            painter.drawPolygon(triangle, 3);
+            painter.drawText(point + QPointF(10.0, -7.0),
+                             QStringLiteral("O%1").arg(obstacle.detection_id));
+        }
+    }
+
+private:
+    QPointF robotToPixel(double relative_x, double relative_y) const
+    {
+        // Convert base_footprint coordinates (forward x, left y) to world.
+        const double cos_yaw = std::cos(robot_pose_.yaw);
+        const double sin_yaw = std::sin(robot_pose_.yaw);
+
+        const double world_x = robot_pose_.x
+            + relative_x * cos_yaw - relative_y * sin_yaw;
+        const double world_y = robot_pose_.y
+            + relative_x * sin_yaw + relative_y * cos_yaw;
+
+        const double scale_x = width()
+            / (StadiumInfo::A + 2.0 * StadiumInfo::K);
+        const double scale_y = height()
+            / (StadiumInfo::B + 2.0 * StadiumInfo::K);
+
+        return QPointF(
+            (world_x + StadiumInfo::A / 2.0 + StadiumInfo::K) * scale_x,
+            (StadiumInfo::B / 2.0 + StadiumInfo::K - world_y) * scale_y);
+    }
+
+    VisionObservation observation_;
+    RobotPose robot_pose_;
+};
+
+static void ObjectValues(VisionObservation& observation)
+{
+    // Temporary UI sample values. Replace these assignments with the matching
+    // ROS2 vision_packages fields when the Vision topic becomes available.
+    // ball[]에 항목이 있으면 검출된 것으로 간주한다. 비우면 미검출이다.
+    observation.ball = {
+        {0.94f, 7.0f, 0.45f}
+    };
+
+    observation.obstacles = {
+        {1, 0.96f, 2.4f, -0.85f},
+        {2, 0.89f, 3.2f, 1.10f}
+    };
+}
+
+static QString makeVisionDisplayText(const VisionObservation& observation)
+{
+    QString text = QStringLiteral("Vision Object Display\n\n");
+
+    if (observation.ball.empty())
+    {
+        text += QStringLiteral("Ball: not detected\n\n");
+    }
+    else
+    {
+        const auto& ball = observation.ball.front();
+        text += QStringLiteral("Ball: detected\n"
+                               "  confidence: %1\n"
+                               "  robot x: %2 m\n"
+                               "  robot y: %3 m\n\n")
+            .arg(ball.confidence, 0, 'f', 2)
+            .arg(ball.x, 0, 'f', 2)
+            .arg(ball.y, 0, 'f', 2);
+    }
+
+    text += QStringLiteral("Obstacles: %1\n").arg(observation.obstacles.size());
+    for (const auto& obstacle : observation.obstacles)
+    {
+        text += QStringLiteral("  ID %1 | confidence %2 | x %3 m | y %4 m\n")
+            .arg(obstacle.detection_id)
+            .arg(obstacle.confidence, 0, 'f', 2)
+            .arg(obstacle.x, 0, 'f', 2)
+            .arg(obstacle.y, 0, 'f', 2);
+    }
+
+    return text;
+}
+
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
@@ -205,7 +343,7 @@ int main(int argc, char *argv[])
     // UI 파일 로드
     QUiLoader loader;
 
-    QString uiPath = "/home/choiyuns/Desktop/robit/예비/Final Project/Localization/Localization.ui";
+    QString uiPath = "/home/choiyuns/Desktop/robit/예비/Final Project/MCL/Localization.ui";
 
     QFile file(uiPath);
 
@@ -297,6 +435,10 @@ int main(int argc, char *argv[])
         observation.detections.push_back(detection);
     }
 
+    // Placeholder ball and cone locations for checking the field UI.
+    // The Vision ROS2 callback will later populate these same fields.
+    ObjectValues(observation);
+
     // Particle Weight 계산
     mcl.calculateWeights(observation);
 
@@ -370,10 +512,9 @@ int main(int argc, char *argv[])
     qDebug() << "Weight Sum:" << weightSum;
     qDebug() << "================================";
 
-    // ========================================
+    
     // 가장 높은 Weight를 가진 Particle 확인
     // ========================================
-
     const auto& particles = mcl.getParticles();
 
     auto bestParticle = std::max_element(
@@ -431,12 +572,39 @@ int main(int argc, char *argv[])
     // 초기 로봇 위치 설정
     RobotPose initialPose;
 
-    initialPose.x = -3.0;//Topic: 실제 dx값 
+    initialPose.x = 3.0;//Topic: 실제 dx값 
     initialPose.y = 0.0; //Topic: 실제 dy 값 
     initialPose.yaw = 0.0; //Topic: 실제 dyaw값 
 
     robotOverlay->setPose(groundTruth);
     robotOverlay->show();
+
+    // Ball and obstacle positions are robot-relative in the topic. Use the
+    // matching robot pose to place them on the world-coordinate field map.
+    auto *objectOverlay = new VisionObjectOverlay(stadiumLabel);
+    objectOverlay->setGeometry(stadiumLabel->rect());
+    objectOverlay->setObservation(observation, groundTruth);
+    objectOverlay->show();
+
+    // Show the temporary topic values in the existing Vision UI panels.
+    const QString visionText = makeVisionDisplayText(observation);
+
+    if (auto *visionLabel = window->findChild<QLabel*>("vision"))
+    {
+        visionLabel->setAlignment(Qt::AlignCenter);
+        visionLabel->setWordWrap(true);
+        visionLabel->setText(visionText);
+    }
+
+    if (auto *visionLogLabel = window->findChild<QLabel*>("label_2"))
+    {
+        visionLogLabel->setAlignment(Qt::AlignLeft | Qt::AlignTop);
+        visionLogLabel->setMargin(12);
+        visionLogLabel->setWordWrap(true);
+        visionLogLabel->setText(
+            QStringLiteral("TEMPORARY SIMULATION VALUES\n\n") + visionText);
+    }
+
     // 화면 출력
     window->show();
 

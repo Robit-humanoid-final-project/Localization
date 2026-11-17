@@ -387,6 +387,8 @@ CMakeFiles/MyProject.dir/main.cpp.o: \
  /usr/include/x86_64-linux-gnu/qt6/QtGui/qpainter.h \
  /usr/include/x86_64-linux-gnu/qt6/QtGui/qtextoption.h \
  /usr/include/x86_64-linux-gnu/qt6/QtGui/qpen.h \
+ /usr/include/x86_64-linux-gnu/qt6/QtCore/QPointF \
+ /usr/include/x86_64-linux-gnu/qt6/QtCore/qpoint.h \
  /usr/include/x86_64-linux-gnu/qt6/QtGui/QColor \
  /usr/include/x86_64-linux-gnu/qt6/QtGui/qcolor.h \
  /usr/include/x86_64-linux-gnu/qt6/QtCore/QFileInfo \
@@ -399,6 +401,8 @@ CMakeFiles/MyProject.dir/main.cpp.o: \
  /usr/include/x86_64-linux-gnu/qt6/QtCore/QDir \
  /usr/include/x86_64-linux-gnu/qt6/QtCore/qdir.h \
  /usr/include/x86_64-linux-gnu/qt6/QtCore/qfileinfo.h \
+ /usr/include/x86_64-linux-gnu/qt6/QtCore/QString \
+ /usr/include/x86_64-linux-gnu/qt6/QtCore/qstring.h \
  /home/choiyuns/Desktop/robit/예비/Final\ Project/Localization/include/stadium_info.hpp \
  /home/choiyuns/Desktop/robit/예비/Final\ Project/Localization/include/robot_state.hpp \
  /home/choiyuns/Desktop/robit/예비/Final\ Project/Localization/include/odometry.hpp \
