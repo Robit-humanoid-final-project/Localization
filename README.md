@@ -1,4 +1,4 @@
-#빌드
+## 빌드
 
 ```
 cd ~/colcon_ws
@@ -6,7 +6,8 @@ source /opt/ros/jazzy/setup.bash
 colcon build --symlink-install
 source install/setup.bash
 ```
-#실행
+
+## 실행
 ```
 # insta 카메라 켜기
 cd ~/colcon_ws
