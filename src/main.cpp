@@ -16,6 +16,7 @@
 
 #include <array>
 #include <cmath>
+#include <cstdint>
 #include <vector>
 #include <algorithm>
 #include <thread>
@@ -28,14 +29,15 @@
 #include "particle.hpp"
 #include "mcl.hpp"
 #include "vision_observation.hpp"
-#include "vision_subscriber.hpp"
+#include "sub/vision_subscriber.hpp"
+#include "sub/imu_subscriber.hpp"
+#include "sub/ik_coord_subscriber.hpp"
 
 
 class LandmarkOverlay : public QWidget
 {
 public:
-    LandmarkOverlay(QWidget *parent,
-                    const std::array<Landmarks, 16>& landmarks)
+    LandmarkOverlay(QWidget *parent, const std::array<Landmarks, 16>& landmarks)
         : QWidget(parent), landmarks(landmarks)
     {
         setAttribute(Qt::WA_TransparentForMouseEvents);
@@ -173,8 +175,9 @@ protected:
 
         const double py = (StadiumInfo::B / 2.0 + StadiumInfo::K - pose_.y) * scaleY;
 
-        // 로봇 크기
-        constexpr double ROBOT_RADIUS = 16.0;
+        // 화면에서 확인한 방향에 맞춰 가로·세로를 교환한 크기
+        constexpr double ROBOT_WIDTH_PX = 17.0;
+        constexpr double ROBOT_HEIGHT_PX = 25.0;
 
         // 진행 방향 표시 길이
         constexpr double HEADING_LENGTH = 28.0;
@@ -183,7 +186,16 @@ protected:
         painter.setBrush(QColor(0, 180, 0));
         painter.setPen(QPen(Qt::black, 2));
 
-        painter.drawEllipse(QPointF(px, py), ROBOT_RADIUS, ROBOT_RADIUS);
+        painter.save();
+        painter.translate(px, py);
+        constexpr double PI = 3.14159265358979323846;
+        painter.rotate(-pose_.yaw * 180.0 / PI);
+        painter.drawRect(QRectF(
+            -ROBOT_WIDTH_PX / 2.0,
+            -ROBOT_HEIGHT_PX / 2.0,
+            ROBOT_WIDTH_PX,
+            ROBOT_HEIGHT_PX));
+        painter.restore();
 
         // 진행 방향 계산
         const double headingX = px + HEADING_LENGTH * std::cos(pose_.yaw);
@@ -211,15 +223,13 @@ private:
 class VisionObjectOverlay : public QWidget
 {
 public:
-    explicit VisionObjectOverlay(QWidget *parent)
-        : QWidget(parent)
+    explicit VisionObjectOverlay(QWidget *parent) : QWidget(parent)
     {
         setAttribute(Qt::WA_TransparentForMouseEvents);
         setAttribute(Qt::WA_TranslucentBackground);
     }
 
-    void setObservation(const VisionObservation& observation,
-                        const RobotPose& robot_pose)
+    void setObservation(const VisionObservation& observation, const RobotPose& robot_pose)
     {
         observation_ = observation;
         robot_pose_ = robot_pose;
@@ -230,7 +240,9 @@ protected:
     void paintEvent(QPaintEvent *) override
     {
         if (observation_.status != VisionStatus::OK)
+        {
             return;
+        }
 
         QPainter painter(this);
         painter.setRenderHint(QPainter::Antialiasing);
@@ -238,13 +250,11 @@ protected:
         // 공은 목록에 값이 있을 때만 표시한다. (현재 토픽 정의상 최대 1개)
         for (const auto& ball : observation_.ball)
         {
-            const QPointF point = robotToPixel(
-                ball.x,
-                ball.y);
+            const QPointF point = robotToPixel(ball.x, ball.y);
 
             painter.setBrush(QColor(255, 140, 0));
             painter.setPen(QPen(Qt::black, 1));
-            painter.drawEllipse(point, 9.0, 9.0);
+            painter.drawEllipse(point, 14.0, 14.0);
             painter.drawText(point + QPointF(11.0, -8.0), QStringLiteral("Ball"));
         }
 
@@ -256,15 +266,15 @@ protected:
         for (const auto& obstacle : observation_.obstacles)
         {
             const QPointF point = robotToPixel(obstacle.x, obstacle.y);
-            const QPointF triangle[3] = {
+            const QPointF ractangle[4] = {
                 point + QPointF(0.0, -9.0),
                 point + QPointF(-8.0, 7.0),
+                point + QPointF(8.0, 7.0), 
                 point + QPointF(8.0, 7.0)
             };
 
-            painter.drawPolygon(triangle, 3);
-            painter.drawText(point + QPointF(10.0, -7.0),
-                             QStringLiteral("O%1").arg(obstacle.detection_id));
+            painter.drawRect(QRectF(point.x() - 8.0, point.y() - 8.0, 16.0, 16.0));
+            painter.drawText(point + QPointF(10.0, -7.0), QStringLiteral("O%1").arg(obstacle.detection_id));
         }
     }
 
@@ -275,19 +285,13 @@ private:
         const double cos_yaw = std::cos(robot_pose_.yaw);
         const double sin_yaw = std::sin(robot_pose_.yaw);
 
-        const double world_x = robot_pose_.x
-            + relative_x * cos_yaw - relative_y * sin_yaw;
-        const double world_y = robot_pose_.y
-            + relative_x * sin_yaw + relative_y * cos_yaw;
+        const double world_x = robot_pose_.x + relative_x * cos_yaw - relative_y * sin_yaw;
+        const double world_y = robot_pose_.y + relative_x * sin_yaw + relative_y * cos_yaw;
 
-        const double scale_x = width()
-            / (StadiumInfo::A + 2.0 * StadiumInfo::K);
-        const double scale_y = height()
-            / (StadiumInfo::B + 2.0 * StadiumInfo::K);
+        const double scale_x = width() / (StadiumInfo::A + 2.0 * StadiumInfo::K);
+        const double scale_y = height() / (StadiumInfo::B + 2.0 * StadiumInfo::K);
 
-        return QPointF(
-            (world_x + StadiumInfo::A / 2.0 + StadiumInfo::K) * scale_x,
-            (StadiumInfo::B / 2.0 + StadiumInfo::K - world_y) * scale_y);
+        return QPointF((world_x + StadiumInfo::A / 2.0 + StadiumInfo::K) * scale_x, (StadiumInfo::B / 2.0 + StadiumInfo::K - world_y) * scale_y);
     }
 
     VisionObservation observation_;
@@ -374,10 +378,8 @@ int main(int argc, char *argv[])
     // UI 파일 로드
     QUiLoader loader;
 
-    const auto shareDirectory =
-        ament_index_cpp::get_package_share_directory("localization");
-    const QString uiPath =
-        QString::fromStdString(shareDirectory + "/Localization.ui");
+    const auto shareDirectory = ament_index_cpp::get_package_share_directory("localization");
+    const QString uiPath = QString::fromStdString(shareDirectory + "/Localization.ui");
 
     QFile file(uiPath);
 
@@ -398,181 +400,15 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    // Landmark 데이터 생성
     std::array<Landmarks, 16> landmarks;
     definelandmarks(landmarks);
 
-    // Ground Truth: 실제 로봇의 정답 Pose
-    RobotPose groundTruth;
-
-    groundTruth.x = -3.0;
-    groundTruth.y = 0.0;
-    groundTruth.yaw = 0.0;
-
-    // MCL 객체 생성 및 Particle 초기화
-    //particle 2000개 생성
-    MCL mcl(2000); 
-
-    // 이동 전 첫 번째 Particle 저장
-    Particle before = mcl.getParticles()[0];
-    
-    // Odometry 이동량 설정
-    OdometryMove move;
-
-    move.dx = 1.0;
-    move.dy = 0.0;
-    move.dyaw = 0.0;
-
-    // 모든 Particle Prediction 실행
-    mcl.prediction(move);
-
-    // 이동 후 첫 번째 Particle
-    Particle after = mcl.getParticles()[0];
-
-    qDebug() << "========== Prediction Test ==========";
-
-    qDebug() << "Before:";
-    qDebug() << "X:" << before.x;
-    qDebug() << "Y:" << before.y;
-    qDebug() << "Yaw:" << before.yaw;
-
-    qDebug() << "After:";
-    qDebug() << "X:" << after.x;
-    qDebug() << "Y:" << after.y;
-    qDebug() << "Yaw:" << after.yaw;
-
-    VisionObservation observation;
-    observation.status = VisionStatus::OK;
-
-    // 관측할 랜드마크 인덱스
-    const std::array<int, 4> landmark_indices = {2, 6, 10, 12};
-
-    for (std::size_t i = 0; i < landmark_indices.size(); ++i)
-    {
-        const auto& landmark = landmarks[landmark_indices[i]];
-
-        const double dx = landmark.x - groundTruth.x;
-        const double dy = landmark.y - groundTruth.y;
-
-        const double cos_yaw = std::cos(groundTruth.yaw);
-        const double sin_yaw = std::sin(groundTruth.yaw);
-
-        LandmarkObservation detection;
-
-        detection.type = landmark.type;
-        detection.detection_id = static_cast<std::uint8_t>(i + 1);
-        detection.confidence = 0.95f;
-
-        detection.x = cos_yaw * dx + sin_yaw * dy;
-        detection.y = -sin_yaw * dx + cos_yaw * dy;
-
-        observation.detections.push_back(detection);
-    }
-
-    // Placeholder ball and cone locations for checking the field UI.
-    // The Vision ROS2 callback will later populate these same fields.
-    // Particle Weight 계산
-    mcl.calculateWeights(observation);
-
-    // MCL Pose Estimation
-    RobotPose estimated_pose = mcl.estimatePose();
-
-    qDebug() << "\n========== MCL Pose Estimation ==========";
-    qDebug() << "Estimated Pose:";
-    qDebug() << "X:" << estimated_pose.x;
-    qDebug() << "Y:" << estimated_pose.y;
-    qDebug() << "Yaw:" << estimated_pose.yaw;
-
-    double position_error = std::sqrt(
-        std::pow(estimated_pose.x - groundTruth.x, 2) +
-        std::pow(estimated_pose.y - groundTruth.y, 2)
-    );
-
-    qDebug() << "Position Error:" << position_error << "m";
-    qDebug() << "========================================";
-
-    // Resampling 전
-    double weight_sum_before = 0.0;
-
-    for (const auto& particle : mcl.getParticles())
-    {
-        weight_sum_before += particle.weight;
-    }
-
-    qDebug() << "\n========== Resampling Test ==========";
-    qDebug() << "Before Resampling";
-    qDebug() << "Particle Count:" << mcl.getParticles().size();
-    qDebug() << "Weight Sum:" << weight_sum_before;
-
-    // Resampling 실행
-    mcl.resample();
-
-    // Resampling 후
-    double weight_sum_after = 0.0;
-    double min_weight = 1.0;
-    double max_weight = 0.0;
-
-    for (const auto& particle : mcl.getParticles())
-    {
-        weight_sum_after += particle.weight;
-
-        min_weight = std::min(min_weight, particle.weight);
-        max_weight = std::max(max_weight, particle.weight);
-    }
-
-    qDebug() << "\nAfter Resampling";
-    qDebug() << "Particle Count:" << mcl.getParticles().size();
-    qDebug() << "Weight Sum:" << weight_sum_after;
-    qDebug() << "Min Weight:" << min_weight;
-    qDebug() << "Max Weight:" << max_weight;
-    qDebug() << "=====================================";
-
-    qDebug() << "Ground Truth:"
-            << groundTruth.x
-            << groundTruth.y
-            << groundTruth.yaw;
-
-    double weightSum = 0.0;
-
-    for (const auto& particle : mcl.getParticles())
-    {
-        weightSum += particle.weight;
-    }
-
-    qDebug() << "================================";
-    qDebug() << "Particle Count:" << mcl.getParticles().size();
-    qDebug() << "Weight Sum:" << weightSum;
-    qDebug() << "================================";
-
-    
-    // 가장 높은 Weight를 가진 Particle 확인
-    // ========================================
-    const auto& particles = mcl.getParticles();
-
-    auto bestParticle = std::max_element(
-        particles.begin(),
-        particles.end(),
-        [](const Particle& a, const Particle& b)
-        {
-            return a.weight < b.weight;
-        }
-    );
-
-    const double positionError = std::hypot(
-        bestParticle->x - groundTruth.x,
-        bestParticle->y - groundTruth.y
-    );
-
-    qDebug() << "Best Particle:";
-    qDebug() << "X:" << bestParticle->x;
-    qDebug() << "Y:" << bestParticle->y;
-    qDebug() << "Yaw:" << bestParticle->yaw;
-    qDebug() << "Weight:" << bestParticle->weight;
-    qDebug() << "Position Error:" << positionError << "m";
+    // Initialize the live MCL estimate from a uniform particle distribution.
+    MCL mcl(2000);
+    RobotPose estimatedPose = mcl.estimatePose();
 
     // UI 내부 QLabel 검색
-    QLabel *stadiumLabel =
-        window->findChild<QLabel*>("label");
+    QLabel *stadiumLabel = window->findChild<QLabel*>("label");
 
     if (!stadiumLabel)
     {
@@ -582,12 +418,10 @@ int main(int argc, char *argv[])
     }
 
     // QLabel 위에 Landmark Overlay 생성
-    auto *overlay =
-        new LandmarkOverlay(stadiumLabel, landmarks);
+    auto *overlay = new LandmarkOverlay(stadiumLabel, landmarks);
 
     // Particle Overlay 생성
-    auto *particleOverlay =
-        new ParticleOverlay(stadiumLabel);
+    auto *particleOverlay = new ParticleOverlay(stadiumLabel);
 
     particleOverlay->setGeometry(stadiumLabel->rect());
     particleOverlay->setParticles(mcl.getParticles());
@@ -601,14 +435,7 @@ int main(int argc, char *argv[])
 
     robotOverlay->setGeometry(stadiumLabel->rect());
 
-    // 초기 로봇 위치 설정
-    RobotPose initialPose;
-
-    initialPose.x = 3.0;//Topic: 실제 dx값 
-    initialPose.y = 0.0; //Topic: 실제 dy 값 
-    initialPose.yaw = 0.0; //Topic: 실제 dyaw값 
-
-    robotOverlay->setPose(groundTruth);
+    robotOverlay->setPose(estimatedPose);
     robotOverlay->show();
 
     // Ball and obstacle positions are robot-relative in the topic. Use the
@@ -616,7 +443,7 @@ int main(int argc, char *argv[])
     auto *objectOverlay = new VisionObjectOverlay(stadiumLabel);
     objectOverlay->setGeometry(stadiumLabel->rect());
     VisionObservation waitingObservation;
-    objectOverlay->setObservation(waitingObservation, groundTruth);
+    objectOverlay->setObservation(waitingObservation, estimatedPose);
     objectOverlay->show();
 
     // Show the temporary topic values in the existing Vision UI panels.
@@ -641,26 +468,95 @@ int main(int argc, char *argv[])
     // ROS callbacks run on their own executor thread; UI updates stay on Qt's thread.
     rclcpp::init(0, nullptr);
     auto visionNode = std::make_shared<VisionSubscriber>();
+    auto imuNode = std::make_shared<ImuSubscriber>();
+    auto ikCoordNode = std::make_shared<IkCoordSubscriber>();
+
     rclcpp::executors::SingleThreadedExecutor executor;
     executor.add_node(visionNode);
+    executor.add_node(imuNode);
+    executor.add_node(ikCoordNode);
+    
     std::thread rosThread([&executor]() { executor.spin(); });
+
+    // IkCoord values are treated as millimeters based on ik_walk's stride parameters.
+    constexpr double IK_COORD_UNITS_PER_METER = 1000.0;
+    double pending_dyaw_rad = 0.0;
 
     auto *visionTimer = new QTimer(window);
     QObject::connect(visionTimer, &QTimer::timeout, window,
-        [visionNode, objectOverlay, groundTruth, window]()
+        [visionNode, imuNode, ikCoordNode, objectOverlay, robotOverlay,
+         particleOverlay, &mcl, &estimatedPose, &pending_dyaw_rad, window]()
         {
+            double yaw_deg = 0.0;
+            double dyaw_rad = 0.0;
+            
+            if (imuNode->takeImuUpdate(yaw_deg, dyaw_rad))
+            {
+                pending_dyaw_rad += dyaw_rad;
+                qDebug() << "IMU yaw:" << yaw_deg
+                         << "deg, dyaw:" << dyaw_rad << "rad";
+            }
+
+            std::int64_t step_x_raw = 0;
+            std::int64_t step_y_raw = 0;
+            if (ikCoordNode->takeUpdate(step_x_raw, step_y_raw))
+            {
+                OdometryMove move{};
+                move.dx = static_cast<double>(step_x_raw)
+                    / IK_COORD_UNITS_PER_METER;
+                move.dy = static_cast<double>(step_y_raw)
+                    / IK_COORD_UNITS_PER_METER;
+                move.dyaw = pending_dyaw_rad;
+                pending_dyaw_rad = 0.0;
+
+                mcl.prediction(move);
+                estimatedPose = mcl.estimatePose();
+                robotOverlay->setPose(estimatedPose);
+                particleOverlay->setParticles(mcl.getParticles());
+
+                qDebug() << "OdometryMove (m, rad):"
+                         << "dx=" << move.dx
+                         << "dy=" << move.dy
+                         << "dyaw=" << move.dyaw
+                         << "| estimate (m, rad):"
+                         << estimatedPose.x << estimatedPose.y << estimatedPose.yaw;
+            }
+
             VisionObservation liveObservation;
             if (!visionNode->getLatestObservation(liveObservation))
+            {
                 return;
+            }
 
-            objectOverlay->setObservation(liveObservation, groundTruth);
+            // Correct the particle distribution once per newly received
+            // landmark frame, then publish the corrected pose to the UI.
+            VisionObservation newObservation;
+            if (visionNode->takeNewObservation(newObservation)
+                && newObservation.status == VisionStatus::OK
+                && !newObservation.detections.empty())
+            {
+                mcl.calculateWeights(newObservation);
+                mcl.resample();
+                estimatedPose = mcl.estimatePose();
+                robotOverlay->setPose(estimatedPose);
+                particleOverlay->setParticles(mcl.getParticles());
+
+                qDebug() << "MCL vision correction:" << newObservation.detections.size()
+                         << "landmarks, estimate (m, rad):"
+                         << estimatedPose.x << estimatedPose.y << estimatedPose.yaw;
+            }
+        
+            objectOverlay->setObservation(liveObservation, estimatedPose);
             const QString liveText = makeVisionDisplayText(liveObservation);
 
             if (auto *label = window->findChild<QLabel*>("vision"))
+            {
                 label->setText(liveText);
+            }
             if (auto *logLabel = window->findChild<QLabel*>("label_2"))
-                logLabel->setText(
-                    QStringLiteral("LIVE /vision_packages\n\n") + liveText);
+            {
+                logLabel->setText(QStringLiteral("LIVE /vision_packages\n\n") + liveText);
+            }
         });
     visionTimer->start(50);
 
@@ -670,7 +566,9 @@ int main(int argc, char *argv[])
     const int result = app.exec();
     executor.cancel();
     if (rosThread.joinable())
+    {
         rosThread.join();
+    }
     rclcpp::shutdown();
     return result;
 }

@@ -43,10 +43,14 @@ double Odometry::normalizeYaw(double yaw) const
     constexpr double PI = 3.14159265358979323846;
 
     while (yaw >= PI)
+    {
         yaw -= 2.0 * PI;
+    }
 
     while (yaw < -PI)
+    {
         yaw += 2.0 * PI;
+    }
 
     return yaw;
 }

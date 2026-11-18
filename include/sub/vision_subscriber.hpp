@@ -6,10 +6,9 @@
 
 #include <rclcpp/rclcpp.hpp>
 
-// 실제 Vision 메시지 패키지와 타입 이름으로 바꿔야 함
 #include <humanoid_interfaces/msg/vision2_local_observ.hpp>
-
 #include "vision_observation.hpp"
+
 
 class VisionSubscriber : public rclcpp::Node
 {
@@ -19,12 +18,12 @@ public:
     explicit VisionSubscriber()
         : Node("mcl_vision_subscriber")
     {
-        subscription_ = create_subscription<VisionMsg>(
+        vision_subscription_ = create_subscription<VisionMsg>(
             "/vision_packages",
             rclcpp::QoS(10),
             [this](const VisionMsg::SharedPtr msg)
             {
-                onVisionMessage(*msg);
+                VisionCallback(*msg);
             });
     }
 
@@ -38,12 +37,28 @@ public:
         return true;
     }
 
+    // Return each received frame once for state-estimation updates.
+    bool takeNewObservation(VisionObservation& observation)
+    {
+        std::lock_guard<std::mutex> lock(observation_mutex_);
+        if (!has_new_observation_)
+        {
+            return false;
+        }
+
+        observation = latest_observation_;
+        has_new_observation_ = false;
+        return true;
+    }
+
+    
+
 private:
-    void onVisionMessage(const VisionMsg& msg)
+    void VisionCallback(const VisionMsg& msg)
     {
         VisionObservation observation;
 
-        // 메시지의 header를 내부 구조체에 복사
+        // 메시지의 header를 내부 구조체에 복사   
         observation.stamp_sec = msg.header.stamp.sec;
         observation.stamp_nanosec = msg.header.stamp.nanosec;
         observation.frame_id = msg.header.frame_id;
@@ -102,6 +117,7 @@ private:
             std::lock_guard<std::mutex> lock(observation_mutex_);
             latest_observation_ = observation;
             has_observation_ = true;
+            has_new_observation_ = true;
         }
 
         RCLCPP_INFO(
@@ -112,8 +128,12 @@ private:
             observation.obstacles.size());
     }
 
-    rclcpp::Subscription<VisionMsg>::SharedPtr subscription_;
+    
+    rclcpp::Subscription<VisionMsg>::SharedPtr vision_subscription_;
+
     mutable std::mutex observation_mutex_;
+
     VisionObservation latest_observation_;
     bool has_observation_ = false;
+    bool has_new_observation_ = false;
 };

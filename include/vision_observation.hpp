@@ -1,4 +1,3 @@
-
 #ifndef VISION_OBSERVATION_HPP
 #define VISION_OBSERVATION_HPP
 
@@ -6,7 +5,15 @@
 #include <string>
 #include <vector>
 
-#include "landmark_observation.hpp"
+// Landmark 하나의 관측 정보
+struct LandmarkObservation
+{
+    std::uint8_t type = 0; // topic: landmark 종류 
+    std::uint8_t detection_id = 0; // topic: 검출 landmark ID
+    float confidence = 0.0; // topic: 검출 신뢰도
+    float x = 0.0; // topic: 로봇 기준 전방 거리
+    float y = 0.0; // topic: 로봇 기준 좌측 거리
+};
 
 //Ball
 struct BallObservation
