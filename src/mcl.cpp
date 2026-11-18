@@ -276,7 +276,6 @@ double MCL::calculateLandmarkLikelihood(const Particle& particle, const Landmark
 
 // Calculate Particle Weights
 // ========================================
-
 void MCL::calculateWeights(const VisionObservation& observation)
 {
     // 정상적인 관측 데이터가 아니면 계산하지 않음

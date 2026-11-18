@@ -1,6 +1,8 @@
 #ifndef ROBOT_STATE_HPP
 #define ROBOT_STATE_HPP
 
+//world 좌표계
+//==========================
 struct RobotPose
 {
     double x = 0.0; //월드 좌표 X
@@ -8,6 +10,9 @@ struct RobotPose
     double yaw = 0.0; //월드 좌표 Yaw
 }; 
 
+
+//robot 좌표계
+//==========================
 struct OdometryMove
 {
     double dx = 0.0; // topic: 로봇 기준 전방 이동량
