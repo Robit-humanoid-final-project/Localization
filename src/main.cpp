@@ -457,7 +457,7 @@ int main(int argc, char *argv[])
         visionLabel->setText(visionText);
     }
 
-    if (auto *visionLogLabel = window->findChild<QLabel*>("label_2"))
+    if (auto *visionLogLabel = window->findChild<QLabel*>("visionlog"))
     {
         visionLogLabel->setAlignment(Qt::AlignLeft | Qt::AlignTop);
         visionLogLabel->setMargin(12);
@@ -551,7 +551,7 @@ int main(int argc, char *argv[])
             {
                 label->setText(liveText);
             }
-            if (auto *logLabel = window->findChild<QLabel*>("label_2"))
+            if (auto *logLabel = window->findChild<QLabel*>("visionlog"))
             {
                 logLabel->setText(QStringLiteral("LIVE /vision_packages\n\n") + liveText);
             }

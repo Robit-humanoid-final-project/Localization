@@ -307,17 +307,43 @@
      <string>                                                                                         VIsion Display</string>
     </property>
    </widget>
-   <widget class="QLabel" name="label_2">
+   <widget class="QLabel" name="visionlog">
     <property name="geometry">
      <rect>
-      <x>1100</x>
+      <x>890</x>
       <y>800</y>
-      <width>771</width>
+      <width>491</width>
       <height>251</height>
      </rect>
     </property>
     <property name="text">
-     <string>                                                                                           Vision Log</string>
+     <string>                                              Vision Log</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="odometrylog">
+    <property name="geometry">
+     <rect>
+      <x>1420</x>
+      <y>810</y>
+      <width>441</width>
+      <height>231</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>                                                     Odometry Log</string>
+    </property>
+   </widget>
+   <widget class="Line" name="line">
+    <property name="geometry">
+     <rect>
+      <x>1393</x>
+      <y>810</y>
+      <width>20</width>
+      <height>271</height>
+     </rect>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Vertical</enum>
     </property>
    </widget>
   </widget>
