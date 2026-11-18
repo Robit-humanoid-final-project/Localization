@@ -502,10 +502,8 @@ int main(int argc, char *argv[])
             if (ikCoordNode->takeUpdate(step_x_raw, step_y_raw))
             {
                 OdometryMove move{};
-                move.dx = static_cast<double>(step_x_raw)
-                    / IK_COORD_UNITS_PER_METER;
-                move.dy = static_cast<double>(step_y_raw)
-                    / IK_COORD_UNITS_PER_METER;
+                move.dx = static_cast<double>(step_x_raw) / IK_COORD_UNITS_PER_METER;
+                move.dy = static_cast<double>(step_y_raw) / IK_COORD_UNITS_PER_METER;
                 move.dyaw = pending_dyaw_rad;
                 pending_dyaw_rad = 0.0;
 
