@@ -1,0 +1,25 @@
+[0.014s] Invoking command in '/home/choiyuns/colcon_ws/src/Localization/build/localization': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/cmake /home/choiyuns/colcon_ws/src/Localization -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/choiyuns/colcon_ws/src/Localization/install/localization
+[0.097s] -- The C compiler identification is GNU 13.3.0
+[0.195s] -- The CXX compiler identification is GNU 13.3.0
+[0.217s] -- Detecting C compiler ABI info
+[0.350s] -- Detecting C compiler ABI info - done
+[0.361s] -- Check for working C compiler: /usr/bin/cc - skipped
+[0.361s] -- Detecting C compile features
+[0.361s] -- Detecting C compile features - done
+[0.375s] -- Detecting CXX compiler ABI info
+[0.532s] -- Detecting CXX compiler ABI info - done
+[0.548s] -- Check for working CXX compiler: /usr/bin/c++ - skipped
+[0.548s] -- Detecting CXX compile features
+[0.549s] -- Detecting CXX compile features - done
+[0.560s] -- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+[0.708s] -- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+[0.709s] -- Found Threads: TRUE  
+[0.730s] -- Performing Test HAVE_STDATOMIC
+[0.937s] -- Performing Test HAVE_STDATOMIC - Success
+[0.939s] -- Found WrapAtomic: TRUE  
+[0.973s] -- Found OpenGL: /usr/lib/x86_64-linux-gnu/libOpenGL.so   
+[0.974s] -- Found WrapOpenGL: TRUE  
+[1.042s] -- Found XKB: /usr/lib/x86_64-linux-gnu/libxkbcommon.so (found suitable version "1.6.0", minimum required is "0.5.0") 
+[1.095s] -- Found WrapVulkanHeaders: /usr/include  
+[1.119s] -- Found ament_cmake: 2.5.7 (/opt/ros/jazzy/share/ament_cmake/cmake)
+[1.316s] Invoked command in '/home/choiyuns/colcon_ws/src/Localization/build/localization' returned '-2': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/cmake /home/choiyuns/colcon_ws/src/Localization -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/choiyuns/colcon_ws/src/Localization/install/localization

@@ -95,6 +95,13 @@ void MCL::resample()
 
     const std::size_t N = initialized_particles.size();
 
+    // Roughening prevents resampled copies from collapsing onto identical
+    // states, while keeping the perturbation smaller than the sensor noise.
+    constexpr double ROUGHENING_X = 0.05;   // m
+    constexpr double ROUGHENING_Y = 0.05;   // m
+    constexpr double ROUGHENING_YAW = 0.03; // rad
+    constexpr double PI = 3.14159265358979323846;
+
     std::vector<Particle> new_particles;
     new_particles.reserve(N); //N개 분량만큼 메모리 미리 확보
 
@@ -116,6 +123,9 @@ void MCL::resample()
     static std::mt19937 generator(std::random_device{}());
 
     std::uniform_real_distribution<double> distribution(0.0, step);
+    std::normal_distribution<double> roughen_x(0.0, ROUGHENING_X);
+    std::normal_distribution<double> roughen_y(0.0, ROUGHENING_Y);
+    std::normal_distribution<double> roughen_yaw(0.0, ROUGHENING_YAW);
 
     const double start = distribution(generator);
 
@@ -132,6 +142,27 @@ void MCL::resample()
         }
 
         Particle selected = initialized_particles[index];
+
+        // Add a small independent perturbation to each selected particle so
+        // that duplicated particles remain distinguishable and can track
+        // later observations.
+        selected.x = std::clamp(
+            selected.x + roughen_x(generator),
+            -StadiumInfo::A / 2.0,
+            StadiumInfo::A / 2.0);
+        selected.y = std::clamp(
+            selected.y + roughen_y(generator),
+            -StadiumInfo::B / 2.0,
+            StadiumInfo::B / 2.0);
+        selected.yaw += roughen_yaw(generator);
+        while (selected.yaw >= PI)
+        {
+            selected.yaw -= 2.0 * PI;
+        }
+        while (selected.yaw < -PI)
+        {
+            selected.yaw += 2.0 * PI;
+        }
 
         // 4. Weight 균등 초기화
         selected.weight = step;
