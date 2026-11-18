@@ -12,17 +12,23 @@
 #include <QDebug>
 #include <QDir>
 #include <QString>
+#include <QTimer>
 
 #include <array>
 #include <cmath>
 #include <vector>
 #include <algorithm>
+#include <thread>
+#include <memory>
+#include <rclcpp/rclcpp.hpp>
+#include <ament_index_cpp/get_package_share_directory.hpp>
 #include "stadium_info.hpp"
 #include "robot_state.hpp"
 #include "odometry.hpp"
 #include "particle.hpp"
 #include "mcl.hpp"
 #include "vision_observation.hpp"
+#include "vision_subscriber.hpp"
 
 
 class LandmarkOverlay : public QWidget
@@ -288,24 +294,49 @@ private:
     RobotPose robot_pose_;
 };
 
-static void ObjectValues(VisionObservation& observation)
-{
-    // Temporary UI sample values. Replace these assignments with the matching
-    // ROS2 vision_packages fields when the Vision topic becomes available.
-    // ball[]에 항목이 있으면 검출된 것으로 간주한다. 비우면 미검출이다.
-    observation.ball = {
-        {0.94f, 7.0f, 0.45f}
-    };
-
-    observation.obstacles = {
-        {1, 0.96f, 2.4f, -0.85f},
-        {2, 0.89f, 3.2f, 1.10f}
-    };
-}
-
 static QString makeVisionDisplayText(const VisionObservation& observation)
 {
-    QString text = QStringLiteral("Vision Object Display\n\n");
+    QString status;
+    switch (observation.status)
+    {
+        case VisionStatus::OK: status = QStringLiteral("OK"); break;
+        case VisionStatus::NO_DETECTION: status = QStringLiteral("NO_DETECTION"); break;
+        case VisionStatus::CAMERA_ERROR: status = QStringLiteral("CAMERA_ERROR"); break;
+        case VisionStatus::INTERFACE_ERROR: status = QStringLiteral("INTERFACE_ERROR"); break;
+        case VisionStatus::POSITION_ERROR: status = QStringLiteral("POSITION_ERROR"); break;
+        default: status = QStringLiteral("UNKNOWN"); break;
+    }
+
+    QString text = QStringLiteral("Vision Data\n"
+                                  "Status: %1 (%2)\n"
+                                  "Frame: %3\n"
+                                  "Stamp: %4.%5\n\n")
+        .arg(status)
+        .arg(static_cast<unsigned int>(observation.status))
+        .arg(QString::fromStdString(observation.frame_id))
+        .arg(observation.stamp_sec)
+        .arg(observation.stamp_nanosec, 9, 10, QLatin1Char('0'));
+
+    text += QStringLiteral("Landmarks: %1\n").arg(observation.detections.size());
+    for (const auto& detection : observation.detections)
+    {
+        QString type;
+        switch (detection.type)
+        {
+            case 0: type = QStringLiteral("L"); break;
+            case 1: type = QStringLiteral("T"); break;
+            case 2: type = QStringLiteral("X"); break;
+            case 3: type = QStringLiteral("G"); break;
+            default: type = QStringLiteral("?"); break;
+        }
+        text += QStringLiteral("  %1 | ID %2 | confidence %3 | x %4 m | y %5 m\n")
+            .arg(type)
+            .arg(detection.detection_id)
+            .arg(detection.confidence, 0, 'f', 2)
+            .arg(detection.x, 0, 'f', 2)
+            .arg(detection.y, 0, 'f', 2);
+    }
+    text += QLatin1Char('\n');
 
     if (observation.ball.empty())
     {
@@ -343,7 +374,10 @@ int main(int argc, char *argv[])
     // UI 파일 로드
     QUiLoader loader;
 
-    QString uiPath = "/home/choiyuns/Desktop/robit/예비/Final Project/MCL/Localization.ui";
+    const auto shareDirectory =
+        ament_index_cpp::get_package_share_directory("localization");
+    const QString uiPath =
+        QString::fromStdString(shareDirectory + "/Localization.ui");
 
     QFile file(uiPath);
 
@@ -437,8 +471,6 @@ int main(int argc, char *argv[])
 
     // Placeholder ball and cone locations for checking the field UI.
     // The Vision ROS2 callback will later populate these same fields.
-    ObjectValues(observation);
-
     // Particle Weight 계산
     mcl.calculateWeights(observation);
 
@@ -583,15 +615,17 @@ int main(int argc, char *argv[])
     // matching robot pose to place them on the world-coordinate field map.
     auto *objectOverlay = new VisionObjectOverlay(stadiumLabel);
     objectOverlay->setGeometry(stadiumLabel->rect());
-    objectOverlay->setObservation(observation, groundTruth);
+    VisionObservation waitingObservation;
+    objectOverlay->setObservation(waitingObservation, groundTruth);
     objectOverlay->show();
 
     // Show the temporary topic values in the existing Vision UI panels.
-    const QString visionText = makeVisionDisplayText(observation);
+    const QString visionText = QStringLiteral("Waiting for /vision_packages...");
 
     if (auto *visionLabel = window->findChild<QLabel*>("vision"))
     {
-        visionLabel->setAlignment(Qt::AlignCenter);
+        visionLabel->setAlignment(Qt::AlignLeft | Qt::AlignTop);
+        visionLabel->setMargin(12);
         visionLabel->setWordWrap(true);
         visionLabel->setText(visionText);
     }
@@ -601,12 +635,42 @@ int main(int argc, char *argv[])
         visionLogLabel->setAlignment(Qt::AlignLeft | Qt::AlignTop);
         visionLogLabel->setMargin(12);
         visionLogLabel->setWordWrap(true);
-        visionLogLabel->setText(
-            QStringLiteral("TEMPORARY SIMULATION VALUES\n\n") + visionText);
+        visionLogLabel->setText(visionText);
     }
+
+    // ROS callbacks run on their own executor thread; UI updates stay on Qt's thread.
+    rclcpp::init(0, nullptr);
+    auto visionNode = std::make_shared<VisionSubscriber>();
+    rclcpp::executors::SingleThreadedExecutor executor;
+    executor.add_node(visionNode);
+    std::thread rosThread([&executor]() { executor.spin(); });
+
+    auto *visionTimer = new QTimer(window);
+    QObject::connect(visionTimer, &QTimer::timeout, window,
+        [visionNode, objectOverlay, groundTruth, window]()
+        {
+            VisionObservation liveObservation;
+            if (!visionNode->getLatestObservation(liveObservation))
+                return;
+
+            objectOverlay->setObservation(liveObservation, groundTruth);
+            const QString liveText = makeVisionDisplayText(liveObservation);
+
+            if (auto *label = window->findChild<QLabel*>("vision"))
+                label->setText(liveText);
+            if (auto *logLabel = window->findChild<QLabel*>("label_2"))
+                logLabel->setText(
+                    QStringLiteral("LIVE /vision_packages\n\n") + liveText);
+        });
+    visionTimer->start(50);
 
     // 화면 출력
     window->show();
 
-    return app.exec();
+    const int result = app.exec();
+    executor.cancel();
+    if (rosThread.joinable())
+        rosThread.join();
+    rclcpp::shutdown();
+    return result;
 }

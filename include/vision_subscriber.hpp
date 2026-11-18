@@ -1,19 +1,20 @@
 #pragma once
 
 #include <memory>
+#include <mutex>
 #include <vector>
 
 #include <rclcpp/rclcpp.hpp>
 
 // 실제 Vision 메시지 패키지와 타입 이름으로 바꿔야 함
-#include <vision_interfaces/msg/vision_packages.hpp>
+#include <humanoid_interfaces/msg/vision2_local_observ.hpp>
 
 #include "vision_observation.hpp"
 
 class VisionSubscriber : public rclcpp::Node
 {
 public:
-    using VisionMsg = vision_interfaces::msg::VisionPackages;
+    using VisionMsg = humanoid_interfaces::msg::Vision2LocalObserv;
 
     explicit VisionSubscriber()
         : Node("mcl_vision_subscriber")
@@ -25,6 +26,16 @@ public:
             {
                 onVisionMessage(*msg);
             });
+    }
+
+    bool getLatestObservation(VisionObservation& observation) const
+    {
+        std::lock_guard<std::mutex> lock(observation_mutex_);
+        if (!has_observation_)
+            return false;
+
+        observation = latest_observation_;
+        return true;
     }
 
 private:
@@ -43,10 +54,10 @@ private:
         // 이번 프레임의 랜드마크 목록을 새로 채움
         observation.detections.clear();
 
-        for (const auto& item : msg.detection)
+        for (const auto& item : msg.detections)
         {
             LandmarkObservation landmark;
-            landmark.type = static_cast<LandmarkType>(item.type);
+            landmark.type = item.type;
             landmark.detection_id = item.detection_id;
             landmark.confidence = item.confidence;
             landmark.x = item.x;
@@ -58,12 +69,16 @@ private:
         // 공은 최대 한 개라고 정한 구조
         observation.ball.clear();
 
-        if (!msg.ball.empty())
+        const float ball_x = msg.ball[0];
+        const float ball_y = msg.ball[1]; 
+        const float ball_confidence = msg.ball[2];
+
+        if (ball_x != 0.0F || ball_y != 0.0F || ball_confidence != 0.0F)
         {
             BallObservation ball;
-            ball.x = msg.ball[0].x;
-            ball.y = msg.ball[0].y;
-            ball.confidence = msg.ball[0].confidence;
+            ball.x = ball_x;
+            ball.y = ball_y;
+            ball.confidence = ball_confidence;
 
             observation.ball.push_back(ball);
         }
@@ -71,7 +86,7 @@ private:
         // 장애물은 여러 개일 수 있으므로 모두 복사
         observation.obstacles.clear();
 
-        for (const auto& item : msg.obstacle)
+        for (const auto& item : msg.obstacles)
         {
             ObstacleObservation obstacle;
             obstacle.detection_id = item.detection_id;
@@ -83,7 +98,11 @@ private:
         }
 
         // 여기서 observation을 UI 쪽 또는 기존 처리 함수로 전달
-        latest_observation_ = observation;
+        {
+            std::lock_guard<std::mutex> lock(observation_mutex_);
+            latest_observation_ = observation;
+            has_observation_ = true;
+        }
 
         RCLCPP_INFO(
             get_logger(),
@@ -94,5 +113,7 @@ private:
     }
 
     rclcpp::Subscription<VisionMsg>::SharedPtr subscription_;
+    mutable std::mutex observation_mutex_;
     VisionObservation latest_observation_;
+    bool has_observation_ = false;
 };

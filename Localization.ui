@@ -27,7 +27,7 @@
      <string/>
     </property>
     <property name="pixmap">
-     <pixmap>/home/choiyuns/Desktop/robit/예비/Final Project/MCL/stadium.png</pixmap>
+     <pixmap>stadium.png</pixmap>
     </property>
    </widget>
    <widget class="QGroupBox" name="Particle_parameter">
