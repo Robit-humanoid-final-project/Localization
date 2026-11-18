@@ -24,14 +24,14 @@ source install/setup.bash
 ```
 # insta 카메라 켜기
 cd ~/colcon_ws
-colcon build --packages-select insta360_usb_cam
+colcon build --packages-up-to insta360_usb_cam
 source /opt/ros/jazzy/setup.bash
 ros2 launch insta360_usb_cam usb_cam.launch.py
 ```
 ```
 # vision package 켜기
 cd ~/colcon_ws
-colcon build --packages-select vision_packages
+colcon build --packages-up-to robot_vision 
 source /opt/ros/jazzy/setup.bash
 ros2 launch robot_vision robot_vision.launch.py
 ```
