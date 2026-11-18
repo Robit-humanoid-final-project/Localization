@@ -29,9 +29,9 @@
 #include "particle.hpp"
 #include "mcl.hpp"
 #include "vision_observation.hpp"
-#include "sub/vision_subscriber.hpp"
-#include "sub/imu_subscriber.hpp"
-#include "sub/ik_coord_subscriber.hpp"
+#include "subscribe/vision_subscriber.hpp"
+#include "subscribe/imu_subscriber.hpp"
+#include "subscribe/ik_coord_subscriber.hpp"
 
 
 class LandmarkOverlay : public QWidget
