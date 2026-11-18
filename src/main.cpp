@@ -12,6 +12,7 @@
 #include <QDebug>
 #include <QDir>
 #include <QString>
+#include <QStringList>
 #include <QTimer>
 
 #include <array>
@@ -465,6 +466,16 @@ int main(int argc, char *argv[])
         visionLogLabel->setText(visionText);
     }
 
+    QStringList odometryLogLines;
+    odometryLogLines << QStringLiteral("Waiting for /Imu and /ikcoordinate...");
+    if (auto *odometryLogLabel = window->findChild<QLabel*>("odometrylog"))
+    {
+        odometryLogLabel->setAlignment(Qt::AlignLeft | Qt::AlignTop);
+        odometryLogLabel->setMargin(12);
+        odometryLogLabel->setWordWrap(true);
+        odometryLogLabel->setText(odometryLogLines.join('\n'));
+    }
+
     // ROS callbacks run on their own executor thread; UI updates stay on Qt's thread.
     rclcpp::init(0, nullptr);
     auto visionNode = std::make_shared<VisionSubscriber>();
@@ -485,7 +496,8 @@ int main(int argc, char *argv[])
     auto *visionTimer = new QTimer(window);
     QObject::connect(visionTimer, &QTimer::timeout, window,
         [visionNode, imuNode, ikCoordNode, objectOverlay, robotOverlay,
-         particleOverlay, &mcl, &estimatedPose, &pending_dyaw_rad, window]()
+         particleOverlay, &mcl, &estimatedPose, &pending_dyaw_rad,
+         &odometryLogLines, window]()
         {
             double yaw_deg = 0.0;
             double dyaw_rad = 0.0;
@@ -493,6 +505,10 @@ int main(int argc, char *argv[])
             if (imuNode->takeImuUpdate(yaw_deg, dyaw_rad))
             {
                 pending_dyaw_rad += dyaw_rad;
+                odometryLogLines.append(
+                    QStringLiteral("[IMU /Imu] yaw=%1 deg, dyaw=%2 rad")
+                        .arg(yaw_deg, 0, 'f', 2)
+                        .arg(dyaw_rad, 0, 'f', 4));
                 qDebug() << "IMU yaw:" << yaw_deg
                          << "deg, dyaw:" << dyaw_rad << "rad";
             }
@@ -501,11 +517,22 @@ int main(int argc, char *argv[])
             std::int64_t step_y_raw = 0;
             if (ikCoordNode->takeUpdate(step_x_raw, step_y_raw))
             {
+                odometryLogLines.append(
+                    QStringLiteral("[IK /ikcoordinate] x=%1, y=%2 (raw)")
+                        .arg(step_x_raw)
+                        .arg(step_y_raw));
+
                 OdometryMove move{};
                 move.dx = static_cast<double>(step_x_raw) / IK_COORD_UNITS_PER_METER;
                 move.dy = static_cast<double>(step_y_raw) / IK_COORD_UNITS_PER_METER;
                 move.dyaw = pending_dyaw_rad;
                 pending_dyaw_rad = 0.0;
+
+                odometryLogLines.append(
+                    QStringLiteral("[MCL input] dx=%1 m, dy=%2 m, dyaw=%3 rad")
+                        .arg(move.dx, 0, 'f', 4)
+                        .arg(move.dy, 0, 'f', 4)
+                        .arg(move.dyaw, 0, 'f', 4));
 
                 mcl.prediction(move);
                 estimatedPose = mcl.estimatePose();
@@ -518,6 +545,15 @@ int main(int argc, char *argv[])
                          << "dyaw=" << move.dyaw
                          << "| estimate (m, rad):"
                          << estimatedPose.x << estimatedPose.y << estimatedPose.yaw;
+            }
+
+            while (odometryLogLines.size() > 20)
+            {
+                odometryLogLines.removeFirst();
+            }
+            if (auto *odometryLogLabel = window->findChild<QLabel*>("odometrylog"))
+            {
+                odometryLogLabel->setText(odometryLogLines.join('\n'));
             }
 
             VisionObservation liveObservation;
