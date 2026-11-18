@@ -16,6 +16,9 @@ find_package(Threads REQUIRED)
 
 add_executable(MyProject
     src/main.cpp
+    src/sub/imu_subscriber.cpp
+    src/sub/ik_coord_subscriber.cpp
+    src/sub/vision_subscriber.cpp
     Localization.ui
     src/Odometry/odometry.cpp
     src/particle.cpp
