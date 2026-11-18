@@ -538,6 +538,11 @@ int main(int argc, char *argv[])
                 estimatedPose = mcl.estimatePose();
                 robotOverlay->setPose(estimatedPose);
                 particleOverlay->setParticles(mcl.getParticles());
+                odometryLogLines.append(
+                    QStringLiteral("[MCL pose after odometry] x=%1 m, y=%2 m, yaw=%3 rad")
+                        .arg(estimatedPose.x, 0, 'f', 4)
+                        .arg(estimatedPose.y, 0, 'f', 4)
+                        .arg(estimatedPose.yaw, 0, 'f', 4));
 
                 qDebug() << "OdometryMove (m, rad):"
                          << "dx=" << move.dx
@@ -574,6 +579,20 @@ int main(int argc, char *argv[])
                 estimatedPose = mcl.estimatePose();
                 robotOverlay->setPose(estimatedPose);
                 particleOverlay->setParticles(mcl.getParticles());
+                odometryLogLines.append(
+                    QStringLiteral("[MCL pose after vision] x=%1 m, y=%2 m, yaw=%3 rad")
+                        .arg(estimatedPose.x, 0, 'f', 4)
+                        .arg(estimatedPose.y, 0, 'f', 4)
+                        .arg(estimatedPose.yaw, 0, 'f', 4));
+
+                while (odometryLogLines.size() > 20)
+                {
+                    odometryLogLines.removeFirst();
+                }
+                if (auto *odometryLogLabel = window->findChild<QLabel*>("odometrylog"))
+                {
+                    odometryLogLabel->setText(odometryLogLines.join('\n'));
+                }
 
                 qDebug() << "MCL vision correction:" << newObservation.detections.size()
                          << "landmarks, estimate (m, rad):"
