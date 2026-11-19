@@ -25,6 +25,7 @@ add_executable(MyProject
     src/particle.cpp
     src/mcl.cpp
     src/stadium_info.cpp
+    src/publish/world_model_publisher.cpp
 )
 
 target_include_directories(MyProject PRIVATE

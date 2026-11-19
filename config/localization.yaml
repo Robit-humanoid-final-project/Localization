@@ -1,5 +1,5 @@
 mcl:
-  particle_count: 500
+  particle_count: 2000
 
   # 센서 측정 오차의 표준편차
   # 실제 Vision 측정 오차에 따라 추후 조정

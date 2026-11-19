@@ -17,6 +17,7 @@
 
 #include <array>
 #include <cmath>
+#include <utility>
 #include <cstdint>
 #include <vector>
 #include <algorithm>
@@ -35,6 +36,7 @@
 #include "subscribe/vision_subscriber.hpp"
 #include "subscribe/imu_subscriber.hpp"
 #include "subscribe/ik_coord_subscriber.hpp"
+#include "publish/world_model_publisher.hpp"
 
 
 class LandmarkOverlay : public QWidget
@@ -221,8 +223,6 @@ private:
     RobotPose pose_;
 };
 
-// Draws robot-relative Vision object positions on the field map. When real
-// Vision messages arrive, pass their values and the robot pose at that frame.
 class VisionObjectOverlay : public QWidget
 {
 public:
@@ -516,16 +516,18 @@ int main(int argc, char *argv[])
         odometryLogLabel->setText(odometryLogLines.join('\n'));
     }
 
-    // ROS callbacks run on their own executor thread; UI updates stay on Qt's thread.
+    //ROS2 Node 
     rclcpp::init(0, nullptr);
     auto visionNode = std::make_shared<VisionSubscriber>();
     auto imuNode = std::make_shared<ImuSubscriber>();
     auto ikCoordNode = std::make_shared<IkCoordSubscriber>();
+    auto worldModelNode = std::make_shared<WorldModelPublisher>();
 
     rclcpp::executors::SingleThreadedExecutor executor;
     executor.add_node(visionNode);
     executor.add_node(imuNode);
     executor.add_node(ikCoordNode);
+    executor.add_node(worldModelNode);
     
     std::thread rosThread([&executor]() { executor.spin(); });
 
@@ -535,7 +537,7 @@ int main(int argc, char *argv[])
 
     auto *visionTimer = new QTimer(window);
     QObject::connect(visionTimer, &QTimer::timeout, window,
-        [visionNode, imuNode, ikCoordNode, objectOverlay, robotOverlay,
+        [visionNode, imuNode, ikCoordNode, worldModelNode, objectOverlay, robotOverlay,
          particleOverlay, &mcl, &estimatedPose, &pending_dyaw_rad,
          &odometryLogLines, window]()
         {
@@ -640,6 +642,52 @@ int main(int argc, char *argv[])
             }
         
             objectOverlay->setObservation(liveObservation, estimatedPose);
+
+            // WorldModel 발행 데이터 구성
+            bool ball_detected = false;
+            double ball_world_x = 0.0;
+            double ball_world_y = 0.0;
+
+            std::vector<std::pair<double, double>> obstacle_positions;
+
+            const double cos_yaw = std::cos(estimatedPose.yaw);
+            const double sin_yaw = std::sin(estimatedPose.yaw);
+
+            // 공의 로봇 기준 좌표를 월드 좌표로 변환
+            if (liveObservation.status == VisionStatus::OK && !liveObservation.ball.empty())
+            {
+                const auto& ball = liveObservation.ball.front();
+
+                ball_world_x = estimatedPose.x + ball.x * cos_yaw - ball.y * sin_yaw;
+
+                ball_world_y = estimatedPose.y + ball.x * sin_yaw + ball.y * cos_yaw;
+
+                ball_detected = true;
+            }
+
+            // 장애물의 로봇 기준 좌표를 월드 좌표로 변환
+            if (liveObservation.status == VisionStatus::OK)
+            {
+                for (const auto& obstacle : liveObservation.obstacles)
+                {
+                    const double world_x = estimatedPose.x + obstacle.x * cos_yaw - obstacle.y * sin_yaw;
+
+                    const double world_y = estimatedPose.y + obstacle.x * sin_yaw + obstacle.y * cos_yaw;
+
+                    obstacle_positions.emplace_back(world_x, world_y);
+                }
+            }
+
+            // Navigation으로 WorldModel 발행
+            worldModelNode->publishWorldModel(
+                estimatedPose.x,
+                estimatedPose.y,
+                estimatedPose.yaw,
+                ball_detected,
+                ball_world_x,
+                ball_world_y,
+                obstacle_positions
+            );
             const QString liveText = makeVisionDisplayText(liveObservation);
 
             if (auto *label = window->findChild<QLabel*>("vision"))
