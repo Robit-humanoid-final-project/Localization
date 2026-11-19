@@ -1,0 +1,20 @@
+mcl:
+  particle_count: 500
+
+  # 센서 측정 오차의 표준편차
+  # 실제 Vision 측정 오차에 따라 추후 조정
+  sensor_sigma: 0.2
+
+  # Motion Noise
+  prediction:
+    noise_x: 0.02
+    noise_y: 0.02
+    noise_yaw: 0.01
+
+  # Motion Noise랑 다른 점
+  # motion noise는 로봇이 이동했을 때 particle 이동에 노이즈 추가 
+  # roughening은 patricle 중에 가중치가 높은 애한테 집중되지않도록 그 주변에서 조금씩 노이즈 줘서 분산
+  resampling:
+    roughening_x: 0.05
+    roughening_y: 0.05
+    roughening_yaw: 0.03

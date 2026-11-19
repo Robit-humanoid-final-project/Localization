@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-// Landmark 하나의 관측 정보
+// Vision이 검출한 랜드마크의 로봇 기준 좌표
 struct LandmarkObservation
 {
     std::uint8_t type = 0; // topic: landmark 종류 

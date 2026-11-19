@@ -9,13 +9,14 @@ struct StadiumSize
     int height;
 };
 
+// 경기장에 실제로 존재하는 랜드마크의 월드 좌표
 struct Landmarks
 {
-    int type; // topic: detection[].type
-    int detection_id; // topic: detection[].detection_id
-    float confidence; // topic: detection[].confidence
-    float x; // topic: detection[].x
-    float y; // topic: detection[].y
+    int type; 
+    int detection_id; 
+    float confidence;
+    float x; 
+    float y; 
 };
 
 struct StadiumInfo

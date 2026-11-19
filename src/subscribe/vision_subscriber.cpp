@@ -51,11 +51,11 @@ void VisionSubscriber::VisionCallback(const VisionMsg& msg)
     for (const auto& item : msg.detections)
     {
         LandmarkObservation landmark;
-        landmark.type = item.type;
-        landmark.detection_id = item.detection_id;
-        landmark.confidence = item.confidence;
-        landmark.x = item.x;
-        landmark.y = item.y;
+        landmark.type = item.type; // detection[].type 토픽 
+        landmark.detection_id = item.detection_id; // detection[].detection_id 토픽
+        landmark.confidence = item.confidence; // detection[].confidence 토픽
+        landmark.x = item.x; // detection[].x 토픽
+        landmark.y = item.y; // detection[].y 토픽
         observation.detections.push_back(landmark);
     }
 

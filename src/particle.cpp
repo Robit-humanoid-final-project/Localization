@@ -1,6 +1,7 @@
 #include "particle.hpp"
 #include "stadium_info.hpp"
 
+#include <yaml-cpp/yaml.h>
 #include <random>
 
 std::vector<Particle> initializeParticles(std::size_t count)
@@ -21,6 +22,7 @@ std::vector<Particle> initializeParticles(std::size_t count)
     constexpr double PI = 3.14159265358979323846;
     
     // 방향: -PI ~ PI
+    // 초기에는 로봇이 바라보고 있는 방향을 모른다고 가정 
     std::uniform_real_distribution<double> distYaw(-PI, PI);
 
     // 모든 Particle에 동일한 초기 Weight 부여

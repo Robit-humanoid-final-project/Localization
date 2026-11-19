@@ -24,6 +24,8 @@
 #include <memory>
 #include <rclcpp/rclcpp.hpp>
 #include <ament_index_cpp/get_package_share_directory.hpp>
+#include <yaml-cpp/yaml.h>
+
 #include "stadium_info.hpp"
 #include "robot_state.hpp"
 #include "odometry.hpp"
@@ -404,8 +406,46 @@ int main(int argc, char *argv[])
     std::array<Landmarks, 16> landmarks;
     definelandmarks(landmarks);
 
-    // Initialize the live MCL estimate from a uniform particle distribution.
-    MCL mcl(2000);
+    // localization 패키지의 설정 파일 경로 가져오기
+    std::string package_path = ament_index_cpp::get_package_share_directory("localization");
+
+    // YAML 파일 읽기
+    std::string config_path = package_path + "/config/localization.yaml"; 
+    YAML::Node config = YAML::LoadFile(config_path);
+
+    // Particle 개수 가져오기(yaml에서 particle 개수 읽어옴)
+   // Particle 개수
+    std::size_t particle_count = config["mcl"]["particle_count"].as<std::size_t>();
+
+    // Sensor 파라미터
+    double sensor_sigma = config["mcl"]["sensor_sigma"].as<double>();
+
+    // Prediction 파라미터
+    double noise_x = config["mcl"]["prediction"]["noise_x"].as<double>();
+
+    double noise_y = config["mcl"]["prediction"]["noise_y"].as<double>();
+
+    double noise_yaw = config["mcl"]["prediction"]["noise_yaw"].as<double>();
+
+    // Resampling 파라미터
+    double roughening_x = config["mcl"]["resampling"]["roughening_x"].as<double>();
+
+    double roughening_y = config["mcl"]["resampling"]["roughening_y"].as<double>();
+
+    double roughening_yaw = config["mcl"]["resampling"]["roughening_yaw"].as<double>();
+
+    // MCL 초기화
+    MCL mcl(
+        particle_count,
+        sensor_sigma,
+        noise_x,
+        noise_y,
+        noise_yaw,
+        roughening_x,
+        roughening_y,
+        roughening_yaw
+    );
+
     RobotPose estimatedPose = mcl.estimatePose();
 
     // UI 내부 QLabel 검색

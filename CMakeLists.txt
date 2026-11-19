@@ -13,6 +13,7 @@ find_package(ament_index_cpp REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(humanoid_interfaces REQUIRED)
 find_package(Threads REQUIRED)
+find_package(yaml-cpp REQUIRED)
 
 add_executable(MyProject
     src/main.cpp
@@ -34,6 +35,7 @@ target_link_libraries(MyProject
     Qt6::Widgets
     Qt6::UiTools
     Threads::Threads
+    yaml-cpp
 )
 
 ament_target_dependencies(MyProject
@@ -47,6 +49,10 @@ install(TARGETS MyProject
 )
 
 install(FILES Localization.ui stadium.png
+    DESTINATION share/${PROJECT_NAME}
+)
+
+install(DIRECTORY config
     DESTINATION share/${PROJECT_NAME}
 )
 
