@@ -250,6 +250,28 @@ protected:
         QPainter painter(this);
         painter.setRenderHint(QPainter::Antialiasing);
 
+        // 핑크색 L 타입 랜드마크 표시(디버깅용)
+        for (const auto& landmark : observation_.detections)
+        {
+            // type 0 = L 타입 (핑크색)
+            if (landmark.type != 0)
+                continue;
+
+            // 로봇 기준 좌표 -> 월드 좌표 -> UI 픽셀 좌표
+            const QPointF point = robotToPixel(landmark.x, landmark.y);
+
+            painter.setBrush(QColor(255, 105, 180));
+            painter.setPen(QPen(Qt::black, 1));
+
+            // 핑크색 랜드마크 표시
+            painter.drawEllipse(point, 8.0, 8.0);
+
+            // Detection ID 표시
+            painter.drawText(
+                point + QPointF(10.0, -10.0),
+                QStringLiteral("L%1").arg(landmark.detection_id));
+        }
+
         // 공은 목록에 값이 있을 때만 표시한다. (현재 토픽 정의상 최대 1개)
         for (const auto& ball : observation_.ball)
         {

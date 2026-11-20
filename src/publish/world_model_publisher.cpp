@@ -21,7 +21,7 @@ void WorldModelPublisher::publishWorldModel(double robot_x, double robot_y, doub
     msg.robot_pose.y = robot_y;
     msg.robot_pose.theta = robot_yaw;
 
-    // 위치 추정 수렴 여부: 추후 구현
+    // 위치 추정 수렴 여부: 아직 구현 못함
     msg.is_localized = false;
 
     // 공 월드 좌표
