@@ -72,19 +72,20 @@ void ImuSubscriber::ImuCallback(const ImuMsg& msg)
     }
 
     constexpr double pi = 3.14159265358979323846;
-    pending_dyaw_rad_ += delta_deg * pi / 180.0;
+    pending_dyaw_rad_ += -delta_deg * pi / 180.0;
     
+    RCLCPP_INFO(
+        get_logger(),
+        "current=%.2f, previous=%.2f, delta=%.2f, has_previous=%d",
+        current_yaw_deg,
+        previous_yaw_deg_,
+            delta_deg,
+        has_previous_yaw_
+    );
 
     previous_yaw_deg_ = current_yaw_deg;
-    latest_yaw_deg_ = current_yaw_deg;
+    latest_yaw_deg_ = world_yaw_deg;
     has_previous_yaw_ = true;
     has_new_imu_ = true;
 
-    RCLCPP_INFO(
-        get_logger(),
-        "Raw Yaw: %.2f, Previous Yaw: %.2f, Delta: %.2f",
-        current_yaw_deg,
-        previous_yaw_deg_,
-        delta_deg
-    );
 }
