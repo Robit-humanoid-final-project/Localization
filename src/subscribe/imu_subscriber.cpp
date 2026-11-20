@@ -79,4 +79,12 @@ void ImuSubscriber::ImuCallback(const ImuMsg& msg)
     latest_yaw_deg_ = current_yaw_deg;
     has_previous_yaw_ = true;
     has_new_imu_ = true;
+
+    RCLCPP_INFO(
+        get_logger(),
+        "Raw Yaw: %.2f, Previous Yaw: %.2f, Delta: %.2f",
+        current_yaw_deg,
+        previous_yaw_deg_,
+        delta_deg
+    );
 }
