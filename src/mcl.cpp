@@ -8,10 +8,6 @@
 #include <random>
 #include <utility>
 
-// 센서 측정 오차의 표준편차
-// 실제 Vision 측정 오차에 따라 추후 조정
-constexpr double SENSOR_SIGMA = 0.2;
-
 // 생성자
 // ========================================
 MCL::MCL(
@@ -22,7 +18,8 @@ MCL::MCL(
     double noise_yaw,
     double roughening_x,
     double roughening_y,
-    double roughening_yaw
+    double roughening_yaw,
+    const MclInitConfig& init
 )
     : sensor_sigma_(sensor_sigma),
       noise_x_(noise_x),
@@ -32,7 +29,14 @@ MCL::MCL(
       roughening_y_(roughening_y),
       roughening_yaw_(roughening_yaw)
 {
-    initialized_particles = initializeParticles(particle_count);
+    if(init.mode == "pose")
+    {
+        initialized_particles = initializeParticlesAround(particle_count, init.x, init.y, init.yaw, init.sigma_x, init.sigma_y, init.sigma_yaw);
+    }
+    else
+    {
+        initialized_particles = initializeParticles(particle_count);
+    }
 }
 
 // initialize된 particle 반환
@@ -42,6 +46,17 @@ const std::vector<Particle>& MCL::getParticles() const
     return initialized_particles;
 }
 
+void MCL::setYawFromImu(double world_yaw)
+{
+    constexpr double PI = 3.14159265358979323846;
+    static std::mt19937 gen(std::random_device{}());
+    std::normal_distribution<double> n(0.0, imu_yaw_sigma_);
+
+    for(auto& p : initialized_particles)
+    {
+        p.yaw = std::remainder(world_yaw + n(gen), 2.0*PI);
+    }
+}
 // prediction
 //=====================================
 void MCL::prediction(const OdometryMove& move)

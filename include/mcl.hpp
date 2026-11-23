@@ -8,6 +8,13 @@
 #include "robot_state.hpp"
 #include "vision_observation.hpp"
 
+struct MclInitConfig
+{
+    std::string mode = "random";
+    double x = 0.0, y = 0.0, yaw = 0.0;
+    double sigma_x = 0.2, sigma_y = 0.2, sigma_yaw = 0.05;
+};
+
 class MCL
 {
 public:
@@ -19,9 +26,11 @@ public:
         double noise_yaw,
         double roughening_x,
         double roughening_y,
-        double roughening_yaw
+        double roughening_yaw,
+        const MclInitConfig& init
     );
 
+    void setYawFromImu(double world_yaw);
     // Particle 접근
     const std::vector<Particle>& getParticles() const;
 
@@ -37,6 +46,8 @@ public:
 
 
 private:
+
+    double imu_yaw_sigma_ = 0.03;
     //particle 정보 저장하는 vector
     std::vector<Particle> initialized_particles;
 

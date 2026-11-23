@@ -79,7 +79,7 @@ void ImuSubscriber::ImuCallback(const ImuMsg& msg)
         "current=%.2f, previous=%.2f, delta=%.2f, has_previous=%d",
         current_yaw_deg,
         previous_yaw_deg_,
-            delta_deg,
+        delta_deg,
         has_previous_yaw_
     );
 

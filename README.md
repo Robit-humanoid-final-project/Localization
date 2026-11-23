@@ -61,8 +61,9 @@ ros2 launch ebimu e2box_imu_9dofv4.launch.py
 ```
 #Localization 켜기
 cd ~/colcon_ws
+colcon build --packages-select localization
 source /opt/ros/jazzy/setup.bash
 source install/setup.bash
-ros2 run localization MyProject
+ros2 launch localization localization.launch.py
 ```
 

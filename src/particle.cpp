@@ -3,6 +3,8 @@
 
 #include <yaml-cpp/yaml.h>
 #include <random>
+#include <cmath>
+#include <algorithm>
 
 std::vector<Particle> initializeParticles(std::size_t count)
 {
@@ -42,5 +44,28 @@ std::vector<Particle> initializeParticles(std::size_t count)
         particles.push_back(particle);
     }
 
+    return particles;
+}
+
+std::vector<Particle> initializeParticlesAround(
+    std::size_t count, double x, double y, double yaw,
+    double sigma_x, double sigma_y, double sigma_yaw)
+{
+    std::vector<Particle> particles;
+    particles.reserve(count);
+
+    std::mt19937 gen(std::random_device{}());
+    std::normal_distribution<double> dx(x, sigma_x), dy(y, sigma_y), dyaw(yaw, sigma_yaw);
+    constexpr double PI = 3.14159265358979323846;
+
+    for (std::size_t i = 0; i < count; ++i)
+    {
+        Particle p;
+        p.x = std::clamp(dx(gen), -StadiumInfo::A / 2.0, StadiumInfo::A / 2.0);
+        p.y = std::clamp(dy(gen), -StadiumInfo::B / 2.0, StadiumInfo::B / 2.0);
+        p.yaw = std::remainder(dyaw(gen), 2.0 * PI);   // -PI ~ PI로 정규화
+        p.weight = 1.0 / count;
+        particles.push_back(p);
+    }
     return particles;
 }

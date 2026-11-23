@@ -456,6 +456,16 @@ int main(int argc, char *argv[])
 
     double roughening_yaw = config["mcl"]["resampling"]["roughening_yaw"].as<double>();
 
+    MclInitConfig init;
+    const auto initNode = config["mcl"]["init"];
+    init.mode      = initNode["mode"].as<std::string>();
+    init.x         = initNode["x"].as<double>();
+    init.y         = initNode["y"].as<double>();
+    init.yaw       = initNode["yaw"].as<double>();
+    init.sigma_x   = initNode["sigma_x"].as<double>();
+    init.sigma_y   = initNode["sigma_y"].as<double>();
+    init.sigma_yaw = initNode["sigma_yaw"].as<double>();
+
     // MCL 초기화
     MCL mcl(
         particle_count,
@@ -465,7 +475,8 @@ int main(int argc, char *argv[])
         noise_yaw,
         roughening_x,
         roughening_y,
-        roughening_yaw
+        roughening_yaw,
+        init
     );
 
     RobotPose estimatedPose = mcl.estimatePose();
@@ -510,16 +521,17 @@ int main(int argc, char *argv[])
     objectOverlay->show();
 
     // Show the temporary topic values in the existing Vision UI panels.
-    const QString visionText = QStringLiteral("Waiting for /vision_packages...");
+    const QString visionDisplay = QStringLiteral("Waiting for /vision_Display...");
 
     if (auto *visionLabel = window->findChild<QLabel*>("vision"))
     {
         visionLabel->setAlignment(Qt::AlignLeft | Qt::AlignTop);
         visionLabel->setMargin(12);
         visionLabel->setWordWrap(true);
-        visionLabel->setText(visionText);
+        visionLabel->setText(visionDisplay);
     }
 
+    const QString visionText = QStringLiteral("Waiting for /vision_packages...");
     if (auto *visionLogLabel = window->findChild<QLabel*>("visionlog"))
     {
         visionLogLabel->setAlignment(Qt::AlignLeft | Qt::AlignTop);
@@ -551,30 +563,46 @@ int main(int argc, char *argv[])
     executor.add_node(ikCoordNode);
     executor.add_node(worldModelNode);
     
-    std::thread rosThread([&executor]() { executor.spin(); });
+    std::thread rosThread([&executor, &app]()
+    {
+        executor.spin();
+        QMetaObject::invokeMethod(&app, [&app]() { app.quit(); }, Qt::QueuedConnection);
+    });
 
-    // IkCoord values are treated as millimeters based on ik_walk's stride parameters.
+    
     constexpr double IK_COORD_UNITS_PER_METER = 1000.0;
     double pending_dyaw_rad = 0.0;
+    
+
+    bool yaw_offset_set = false;
+    double yaw_offset = 0.0;
+    double imu_world_yaw = init.yaw;
+    const double init_yaw = init.yaw;
 
     auto *visionTimer = new QTimer(window);
     QObject::connect(visionTimer, &QTimer::timeout, window,
         [visionNode, imuNode, ikCoordNode, worldModelNode, objectOverlay, robotOverlay,
          particleOverlay, &mcl, &estimatedPose, &pending_dyaw_rad,
-         &odometryLogLines, window]()
+         &odometryLogLines, window, &yaw_offset_set, &yaw_offset, &imu_world_yaw, init_yaw]()
         {
             double yaw_deg = 0.0;
             double dyaw_rad = 0.0;
             
             if (imuNode->takeImuUpdate(yaw_deg, dyaw_rad))
             {
-                pending_dyaw_rad += dyaw_rad;
-                odometryLogLines.append(
-                    QStringLiteral("[IMU /Imu] yaw=%1 deg, dyaw=%2 rad")
-                        .arg(yaw_deg, 0, 'f', 2)
-                        .arg(dyaw_rad, 0, 'f', 4));
-                qDebug() << "IMU yaw:" << yaw_deg
-                         << "deg, dyaw:" << dyaw_rad << "rad";
+                const double imu_yaw = yaw_deg * M_PI / 180.0;
+                if(!yaw_offset_set)
+                {
+                    yaw_offset = init_yaw - imu_yaw;
+                    yaw_offset_set = true;
+                }
+
+                imu_world_yaw = std::remainder(imu_yaw + yaw_offset, 2.0 * M_PI);
+
+                odometryLogLines.append(QStringLiteral("[IMU /Imu] yaw=%1 deg, world_yaw=%2 rad")
+                            .arg(yaw_deg, 0, 'f', 2)
+                            .arg(imu_world_yaw, 0, 'f', 4));
+
             }
 
             std::int64_t step_x_raw = 0;
@@ -589,8 +617,7 @@ int main(int argc, char *argv[])
                 OdometryMove move{};
                 move.dx = static_cast<double>(step_x_raw) / IK_COORD_UNITS_PER_METER;
                 move.dy = static_cast<double>(step_y_raw) / IK_COORD_UNITS_PER_METER;
-                move.dyaw = pending_dyaw_rad;
-                pending_dyaw_rad = 0.0;
+                move.dyaw = 0.0;
 
                 odometryLogLines.append(
                     QStringLiteral("[MCL input] dx=%1 m, dy=%2 m, dyaw=%3 rad")
@@ -599,6 +626,7 @@ int main(int argc, char *argv[])
                         .arg(move.dyaw, 0, 'f', 4));
 
                 mcl.prediction(move);
+                mcl.setYawFromImu(imu_world_yaw);
                 estimatedPose = mcl.estimatePose();
                 robotOverlay->setPose(estimatedPose);
                 particleOverlay->setParticles(mcl.getParticles());
@@ -631,8 +659,6 @@ int main(int argc, char *argv[])
                 return;
             }
 
-            // Correct the particle distribution once per newly received
-            // landmark frame, then publish the corrected pose to the UI.
             VisionObservation newObservation;
             if (visionNode->takeNewObservation(newObservation)
                 && newObservation.status == VisionStatus::OK
@@ -640,6 +666,7 @@ int main(int argc, char *argv[])
             {
                 mcl.calculateWeights(newObservation);
                 mcl.resample();
+                mcl.setYawFromImu(imu_world_yaw);
                 estimatedPose = mcl.estimatePose();
                 robotOverlay->setPose(estimatedPose);
                 particleOverlay->setParticles(mcl.getParticles());
@@ -700,7 +727,7 @@ int main(int argc, char *argv[])
                 }
             }
 
-            // Navigation으로 WorldModel 발행
+            // WorldModel 발행
             worldModelNode->publishWorldModel(
                 estimatedPose.x,
                 estimatedPose.y,

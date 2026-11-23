@@ -1,4 +1,13 @@
 mcl:
+  init:
+    mode: "pose"
+    x: 0,0
+    y: 0,0 
+    yaw: 0.0              
+    sigma_x: 0.2
+    sigma_y: 0.2
+    sigma_yaw: 0.05             #작을수록 방향을 정확히 맞춰야함
+
   particle_count: 2000
 
   # 센서 측정 오차의 표준편차
