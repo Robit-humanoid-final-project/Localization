@@ -20,8 +20,6 @@ private:
     rclcpp::Subscription<ImuMsg>::SharedPtr imu_subscription_;
     std::mutex imu_mutex_;
 
-    double initial_yaw_deg_ = 0.0;
-    bool has_initial_yaw_ = false;
     double previous_yaw_deg_ = 0.0;
     double latest_yaw_deg_ = 0.0;
     double pending_dyaw_rad_ = 0.0;
