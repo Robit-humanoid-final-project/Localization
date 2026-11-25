@@ -294,43 +294,36 @@
      </property>
     </widget>
    </widget>
-   <widget class="QLabel" name="vision">
+   <widget class="QLabel" name="visionlog">
     <property name="geometry">
      <rect>
       <x>1100</x>
       <y>0</y>
-      <width>771</width>
-      <height>771</height>
+      <width>391</width>
+      <height>401</height>
      </rect>
     </property>
-    <property name="text">
-     <string>                                                                                         VIsion Display</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="visionlog">
-    <property name="geometry">
-     <rect>
-      <x>890</x>
-      <y>800</y>
-      <width>491</width>
-      <height>251</height>
-     </rect>
+    <property name="styleSheet">
+     <string notr="true">background-color: rgb(192, 191, 188);</string>
     </property>
     <property name="text">
-     <string>                                              Vision Log</string>
+     <string>                                         Vision Log</string>
     </property>
    </widget>
    <widget class="QLabel" name="odometrylog">
     <property name="geometry">
      <rect>
-      <x>1420</x>
-      <y>810</y>
-      <width>441</width>
-      <height>231</height>
+      <x>1100</x>
+      <y>400</y>
+      <width>391</width>
+      <height>401</height>
      </rect>
     </property>
+    <property name="styleSheet">
+     <string notr="true">background-color: rgb(222, 221, 218);</string>
+    </property>
     <property name="text">
-     <string>                                                     Odometry Log</string>
+     <string>                                       Odometry Log</string>
     </property>
    </widget>
    <widget class="Line" name="line">
@@ -344,6 +337,38 @@
     </property>
     <property name="orientation">
      <enum>Qt::Vertical</enum>
+    </property>
+   </widget>
+   <widget class="QLabel" name="imulog">
+    <property name="geometry">
+     <rect>
+      <x>1490</x>
+      <y>0</y>
+      <width>381</width>
+      <height>401</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-color: rgb(222, 221, 218);</string>
+    </property>
+    <property name="text">
+     <string>                                                     imu Log</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="visionlog_2">
+    <property name="geometry">
+     <rect>
+      <x>1490</x>
+      <y>400</y>
+      <width>391</width>
+      <height>401</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-color: rgb(192, 191, 188);</string>
+    </property>
+    <property name="text">
+     <string>                                                  Vision Log</string>
     </property>
    </widget>
   </widget>

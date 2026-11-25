@@ -3,7 +3,7 @@ mcl:
     mode: "pose"
     x: 0.0
     y: 0.0
-    yaw: 0.0        
+    yaw: 1.5708                 # 단위: rad       
     sigma_x: 0.2
     sigma_y: 0.2
     sigma_yaw: 0.05             #작을수록 방향을 정확히 맞춰야함
@@ -15,6 +15,7 @@ mcl:
   sensor_sigma: 0.2
 
   # Motion Noise
+  # 값이 크면 급격한 이동 추격 가능
   prediction:
     noise_x: 0.02
     noise_y: 0.02
@@ -23,6 +24,7 @@ mcl:
   # Motion Noise랑 다른 점
   # motion noise는 로봇이 이동했을 때 particle 이동에 노이즈 추가 
   # roughening은 patricle 중에 가중치가 높은 애한테 집중되지않도록 그 주변에서 조금씩 노이즈 줘서 분산
+  # 값이 크면 particle 뭉치는 정도 작아짐
   resampling:
     roughening_x: 0.05
     roughening_y: 0.05

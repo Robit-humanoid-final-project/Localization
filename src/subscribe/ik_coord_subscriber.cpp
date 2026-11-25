@@ -14,7 +14,7 @@ IkCoordSubscriber::IkCoordSubscriber()
         });
 }
 
-bool IkCoordSubscriber::takeUpdate(std::int64_t& x, std::int64_t& y)
+bool IkCoordSubscriber::takeIkUpdate(std::int64_t& x, std::int64_t& y)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (!has_update_)
@@ -22,10 +22,10 @@ bool IkCoordSubscriber::takeUpdate(std::int64_t& x, std::int64_t& y)
         return false;
     }
 
-    x = pending_x_;
-    y = pending_y_;
-    pending_x_ = 0;
-    pending_y_ = 0;
+    x = ikcoordinated_x;
+    y = ikcoordinated_y;
+    ikcoordinated_x = 0;
+    ikcoordinated_y = 0;
     has_update_ = false;
     return true;
 }
@@ -33,7 +33,7 @@ bool IkCoordSubscriber::takeUpdate(std::int64_t& x, std::int64_t& y)
 void IkCoordSubscriber::IkCoordCallback(const IkCoordMsg& msg)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    pending_x_ += msg.x;
-    pending_y_ += msg.y;
+    ikcoordinated_x += msg.x;
+    ikcoordinated_y += msg.y;
     has_update_ = true;
 }
