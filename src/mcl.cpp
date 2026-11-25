@@ -98,6 +98,7 @@ void MCL::prediction(const OdometryMove& move)
         // 방향각 업데이트
         particle.yaw += noisy_dyaw;
 
+
         // Yaw 정규화: -400, +720같이 -360, 360을 넘어가면 다시 0으로 돌아오도록 설정
         while (particle.yaw >= PI)
         {
@@ -108,6 +109,7 @@ void MCL::prediction(const OdometryMove& move)
         {
             particle.yaw += 2.0 * PI;
         }
+        
     }
 }
 

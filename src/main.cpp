@@ -64,11 +64,6 @@ protected:
             // 기존 좌상단 원점 좌표를 중앙 원점 좌표로 변환
             float px = (landmark.x + StadiumInfo::A / 2.0f + StadiumInfo::K) * scaleX;
             float py = (StadiumInfo::B / 2.0f + StadiumInfo::K - landmark.y) * scaleY;
-        
-            
-            qDebug() << "Overlay Size:" << width() << height()
-                << "ID:" << landmark.detection_id
-                << "Pixel:" << px << py;
             
             QColor color;
 
@@ -635,13 +630,6 @@ int main(int argc, char *argv[])
                         .arg(estimatedPose.x, 0, 'f', 4)
                         .arg(estimatedPose.y, 0, 'f', 4)
                         .arg(estimatedPose.yaw, 0, 'f', 4));
-
-                qDebug() << "OdometryMove (m, rad):"
-                         << "dx=" << move.dx
-                         << "dy=" << move.dy
-                         << "dyaw=" << move.dyaw
-                         << "| estimate (m, rad):"
-                         << estimatedPose.x << estimatedPose.y << estimatedPose.yaw;
             }
 
             while (odometryLogLines.size() > 20)
@@ -684,10 +672,6 @@ int main(int argc, char *argv[])
                 {
                     odometryLogLabel->setText(odometryLogLines.join('\n'));
                 }
-
-                qDebug() << "MCL vision correction:" << newObservation.detections.size()
-                         << "landmarks, estimate (m, rad):"
-                         << estimatedPose.x << estimatedPose.y << estimatedPose.yaw;
             }
         
             objectOverlay->setObservation(liveObservation, estimatedPose);

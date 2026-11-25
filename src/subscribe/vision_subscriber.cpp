@@ -89,11 +89,4 @@ void VisionSubscriber::VisionCallback(const VisionMsg& msg)
         has_observation_ = true;
         has_new_observation_ = true;
     }
-
-    RCLCPP_INFO(
-        get_logger(),
-        "Vision 수신: landmarks=%zu, ball=%zu, obstacles=%zu",
-        observation.detections.size(),
-        observation.ball.size(),
-        observation.obstacles.size());
 }

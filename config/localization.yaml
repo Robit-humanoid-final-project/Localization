@@ -1,9 +1,9 @@
 mcl:
   init:
     mode: "pose"
-    x: 0,0
-    y: 0,0 
-    yaw: 0.0              
+    x: 0.0
+    y: 0.0
+    yaw: 0.0        
     sigma_x: 0.2
     sigma_y: 0.2
     sigma_yaw: 0.05             #작을수록 방향을 정확히 맞춰야함

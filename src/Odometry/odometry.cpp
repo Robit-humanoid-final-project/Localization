@@ -1,5 +1,4 @@
 #include "odometry.hpp"
-
 #include <cmath>
 
 // 생성자
