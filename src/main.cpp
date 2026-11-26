@@ -118,7 +118,7 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    std::array<Landmarks, 18> landmarks;
+    std::array<Landmarks, 16> landmarks;
     definelandmarks(landmarks);
 
     // localization 패키지의 설정 파일 경로 가져오기
