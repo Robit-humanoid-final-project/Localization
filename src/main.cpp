@@ -151,7 +151,7 @@ int main(int argc, char *argv[])
 
     MclInitConfig init;
     const auto initNode = config["mcl"]["init"];
-    init.mode      = initNode["mode"].as<std::string>();
+    init.mode      = initNode["mode"].as<bool>();
     init.x         = initNode["x"].as<double>();
     init.y         = initNode["y"].as<double>();
     init.yaw       = initNode["yaw"].as<double>();

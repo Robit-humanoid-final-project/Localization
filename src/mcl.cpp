@@ -29,7 +29,7 @@ MCL::MCL(
       roughening_y_(roughening_y),
       roughening_yaw_(roughening_yaw)
 {
-    if(init.mode == "pose")
+    if(init.mode == true)
     {
         initialized_particles = initializeParticlesAround(particle_count, init.x, init.y, init.yaw, init.sigma_x, init.sigma_y, init.sigma_yaw);
     }

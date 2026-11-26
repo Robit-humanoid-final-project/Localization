@@ -10,7 +10,7 @@
 
 struct MclInitConfig
 {
-    std::string mode = "random";
+    bool mode;
     double x = 0.0, y = 0.0, yaw = 0.0;
     double sigma_x = 0.2, sigma_y = 0.2, sigma_yaw = 0.05;
 };
