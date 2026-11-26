@@ -23,7 +23,7 @@ void definelandmarks(std::array<Landmarks, 18>& landmarks)
     landmarks[7] = {1, 8, 0.90, 0.0, -StadiumInfo::B/2};
     landmarks[8] = {1, 9, 0.85, StadiumInfo::A/2, StadiumInfo::H/2};
     landmarks[9] = {1, 10, 0.80, StadiumInfo::A/2, -StadiumInfo::H/2};
-    landmarks[10] = {1, 10, 0.80, StadiumInfo::A/2, -StadiumInfo::F/2};
+    landmarks[10] = {1, 10, 0.80, StadiumInfo::A/2, StadiumInfo::F/2};
     landmarks[11] = {1, 10, 0.80, StadiumInfo::A/2, -StadiumInfo::F/2}; 
 
     // X
