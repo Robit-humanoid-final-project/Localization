@@ -251,7 +251,7 @@ RobotPose MCL::estimatePose() const
 double MCL::calculateLandmarkLikelihood(const Particle& particle, const LandmarkObservation& observation) const
 {
     //landmark 16개 가져오기
-    std::array<Landmarks, 16> landmarks;
+    std::array<Landmarks, 18> landmarks;
     definelandmarks(landmarks);
 
     // particle yaw 정보 저장 

@@ -21,7 +21,7 @@
 class LandmarkOverlay : public QWidget
 {
 public:
-    LandmarkOverlay(QWidget* parent, const std::array<Landmarks, 16>& landmarks)
+    LandmarkOverlay(QWidget* parent, const std::array<Landmarks, 18>& landmarks)
         : QWidget(parent), landmarks_(landmarks)
     {
         setAttribute(Qt::WA_TransparentForMouseEvents);
@@ -62,7 +62,7 @@ protected:
     }
 
 private:
-    std::array<Landmarks, 16> landmarks_;
+    std::array<Landmarks, 18> landmarks_;
 };
 
 class ParticleOverlay : public QWidget
@@ -319,7 +319,7 @@ void MainWindow::show()
     }
 }
 
-void MainWindow::initOverlays(const std::array<Landmarks, 16>& landmarks, const std::vector<Particle>& particles, const RobotPose& initial_pose)
+void MainWindow::initOverlays(const std::array<Landmarks, 18>& landmarks, const std::vector<Particle>& particles, const RobotPose& initial_pose)
 {
     if (!window_ || !stadiumLabel_)
     {

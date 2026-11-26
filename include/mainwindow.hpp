@@ -30,7 +30,7 @@ public:
     void show();
 
     // Overlay 초기화 (main.cpp에서 MCL 초기화 후 호출)
-    void initOverlays(const std::array<Landmarks, 16>& landmarks, const std::vector<Particle>& particles, const RobotPose& initial_pose);
+    void initOverlays(const std::array<Landmarks, 18>& landmarks, const std::vector<Particle>& particles, const RobotPose& initial_pose);
 
     // 타이머 콜백에서 호출할 갱신 함수들
     void updateRobotPose(const RobotPose& pose);

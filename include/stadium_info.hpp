@@ -40,6 +40,6 @@ struct StadiumInfo
 // 함수 선언
 int defstadiumsize(StadiumSize& size);
 
-void definelandmarks(std::array<Landmarks, 16>& landmarks);
+void definelandmarks(std::array<Landmarks, 18>& landmarks);
 
 #endif
