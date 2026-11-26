@@ -263,14 +263,8 @@ int main(int argc, char *argv[])
                 move.dy = static_cast<double>(step_y_raw) / IK_COORD_UNITS_PER_METER;
                 move.dyaw = 0.0;
 
-                odometryLogLines.append(
-                    QStringLiteral("[MCL input] dx=%1 m, dy=%2 m, dyaw=%3 rad")
-                        .arg(move.dx, 0, 'f', 4)
-                        .arg(move.dy, 0, 'f', 4)
-                        .arg(move.dyaw, 0, 'f', 4));
-
-                mcl.prediction(move);
                 mcl.setYawFromImu(imu_world_yaw);
+                mcl.prediction(move);
                 estimatedPose = mcl.estimatePose();
                 mainWindow.updateRobotPose(estimatedPose);
                 mainWindow.updateParticles(mcl.getParticles());

@@ -1,6 +1,6 @@
 mcl:
   init:
-    mode: false                  # true: 로봇을 시작 위치에 두고 시작 / false: 로봇을 아무 곳에 두고 시작
+    mode: true                  # true: 로봇을 시작 위치에 두고 시작 / false: 로봇을 아무 곳에 두고 시작
     x: 0.0                      # 로봇 시작 위치 x
     y: 0.0                      # 로봇 시작 위치 y
     yaw: 1.5708                 # 단위: rad       

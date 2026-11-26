@@ -16,6 +16,7 @@ void Odometry::update(const OdometryMove& move)
     const double sin_yaw = std::sin(pose_.yaw);
 
     //로봇 좌표계 이동량 -> 월드 좌표계로 변환 
+    //회전 행렬 사용
     pose_.x += move.dx * cos_yaw - move.dy * sin_yaw;
     pose_.y += move.dx * sin_yaw + move.dy * cos_yaw;
 
