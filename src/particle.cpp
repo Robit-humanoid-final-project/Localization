@@ -6,6 +6,8 @@
 #include <cmath>
 #include <algorithm>
 
+constexpr double PI = 3.14159265358979323846;
+
 std::vector<Particle> initializeParticles(std::size_t count)
 {
     std::vector<Particle> particles;
@@ -20,8 +22,6 @@ std::vector<Particle> initializeParticles(std::size_t count)
     std::uniform_real_distribution<double> distX(-StadiumInfo::A / 2.0, StadiumInfo::A / 2.0);
 
     std::uniform_real_distribution<double> distY(-StadiumInfo::B / 2.0, StadiumInfo::B / 2.0);
-
-    constexpr double PI = 3.14159265358979323846;
     
     // 방향: -PI ~ PI
     // 초기에는 로봇이 바라보고 있는 방향을 모른다고 가정 
@@ -47,16 +47,16 @@ std::vector<Particle> initializeParticles(std::size_t count)
     return particles;
 }
 
-std::vector<Particle> initializeParticlesAround(
-    std::size_t count, double x, double y, double yaw,
-    double sigma_x, double sigma_y, double sigma_yaw)
+std::vector<Particle> initializeParticlesAround(std::size_t count, double x, double y, double yaw, double sigma_x, double sigma_y, double sigma_yaw)
 {
     std::vector<Particle> particles;
     particles.reserve(count);
 
     std::mt19937 gen(std::random_device{}());
-    std::normal_distribution<double> dx(x, sigma_x), dy(y, sigma_y), dyaw(yaw, sigma_yaw);
-    constexpr double PI = 3.14159265358979323846;
+    // 로봇 시작 좌표 기준으로 정규분포 생성(편차: sigma)
+    std::normal_distribution<double> dx(x, sigma_x);
+    std::normal_distribution<double> dy(y, sigma_y);
+    std::normal_distribution<double> dyaw(yaw, sigma_yaw);
 
     for (std::size_t i = 0; i < count; ++i)
     {

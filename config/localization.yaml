@@ -4,8 +4,8 @@ mcl:
     x: 0.0                      # 로봇 시작 위치 x
     y: 0.0                      # 로봇 시작 위치 y
     yaw: 1.5708                 # 단위: rad       
-    sigma_x: 0.2
-    sigma_y: 0.2
+    sigma_x: 0.1
+    sigma_y: 0.1
     sigma_yaw: 0.05             #작을수록 방향을 정확히 맞춰야함
 
   particle_count: 2000

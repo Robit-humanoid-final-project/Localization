@@ -54,7 +54,7 @@ void MCL::setYawFromImu(double world_yaw)
 
     for(auto& p : initialized_particles)
     {
-        p.yaw = std::remainder(world_yaw + n(gen), 2.0*PI);
+        p.yaw = std::remainder(world_yaw, 2.0*PI);
     }
 }
 // prediction
@@ -159,7 +159,7 @@ void MCL::resample()
     const double start = distribution(generator);
 
     // 3. Particle 선택
-    // 
+    // ========================
     std::size_t index = 0;
 
     for (std::size_t i = 0; i < N; ++i)
@@ -377,3 +377,5 @@ void MCL::calculateWeights(const VisionObservation& observation)
         }
     }
 }
+
+
