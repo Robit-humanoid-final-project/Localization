@@ -22,6 +22,13 @@ public:
 private:
     rclcpp::Publisher<humanoid_interfaces::msg::WorldModel>::SharedPtr publisher_;
     rclcpp::Time last_object_publish_time_;
+
+    bool ball_detected_ = false;
+
+    double ball_x_ = 0.0;
+    double ball_y_ = 0.0;
+
+    std::vector<geometry_msgs::msg::Point> obstacles_;
 };
 
 #endif
