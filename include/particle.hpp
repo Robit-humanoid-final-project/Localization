@@ -16,9 +16,6 @@ struct Particle
 // Particle 초기화 함수
 std::vector<Particle> initializeParticles(std::size_t count);
 
-std::vector<Particle> initializeParticlesAround(
-    std::size_t count,
-    double x, double y, double yaw,
-    double sigma_x, double sigma_y, double sigma_yaw);
+std::vector<Particle> initializeParticlesAround(std::size_t count, double x, double y, double yaw, double sigma_x, double sigma_y, double sigma_yaw);
 
 #endif

@@ -13,6 +13,8 @@
 #include "particle.hpp"
 #include "vision_observation.hpp"
 
+QString makeVisionLogText(const VisionObservation& observation);
+
 // 전방 선언
 class LandmarkOverlay;
 class ParticleOverlay;

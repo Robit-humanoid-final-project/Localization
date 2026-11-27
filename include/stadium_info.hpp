@@ -9,7 +9,7 @@ struct StadiumSize
     int height;
 };
 
-// 경기장에 실제로 존재하는 랜드마크의 월드 좌표
+// 경기장에 실제로 존재하는 랜드마크의 월드 좌표(topic 아님)
 struct Landmarks
 {
     int type; 

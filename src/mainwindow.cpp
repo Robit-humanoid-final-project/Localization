@@ -15,6 +15,74 @@
 #include <cmath>
 #include <utility>
 
+QString makeVisionLogText(const VisionObservation& observation)
+{
+    QString status;
+
+    switch (observation.status)
+    {
+        case VisionStatus::OK:
+            status = QStringLiteral("OK");
+            break;
+        case VisionStatus::NO_DETECTION:
+            status = QStringLiteral("NO_DETECTION");
+            break;
+        case VisionStatus::CAMERA_ERROR:
+            status = QStringLiteral("CAMERA_ERROR");
+            break;
+        case VisionStatus::INTERFACE_ERROR:
+            status = QStringLiteral("INTERFACE_ERROR");
+            break;
+        case VisionStatus::POSITION_ERROR:
+            status = QStringLiteral("POSITION_ERROR");
+            break;
+        default:
+            status = QStringLiteral("UNKNOWN");
+            break;
+    }
+
+    QString text = QStringLiteral("LIVE /vision_packages\nStatus: %1\n")
+        .arg(status);
+
+    text += QStringLiteral("Landmarks: %1\n")
+        .arg(static_cast<int>(observation.detections.size()));
+
+    for (const auto& detection : observation.detections)
+    {
+        text += QStringLiteral("  type=%1 id=%2 confidence=%3 x=%4 y=%5\n")
+            .arg(static_cast<int>(detection.type))
+            .arg(static_cast<int>(detection.detection_id))
+            .arg(detection.confidence, 0, 'f', 2)
+            .arg(detection.x, 0, 'f', 3)
+            .arg(detection.y, 0, 'f', 3);
+    }
+
+    text += QStringLiteral("Ball: %1\n")
+        .arg(static_cast<int>(observation.ball.size()));
+
+    for (const auto& ball : observation.ball)
+    {
+        text += QStringLiteral("  confidence=%1 x=%2 y=%3\n")
+            .arg(ball.confidence, 0, 'f', 2)
+            .arg(ball.x, 0, 'f', 3)
+            .arg(ball.y, 0, 'f', 3);
+    }
+
+    text += QStringLiteral("Obstacles: %1\n")
+        .arg(static_cast<int>(observation.obstacles.size()));
+
+    for (const auto& obstacle : observation.obstacles)
+    {
+        text += QStringLiteral("  id=%1 confidence=%2 x=%3 y=%4\n")
+            .arg(static_cast<int>(obstacle.detection_id))
+            .arg(obstacle.confidence, 0, 'f', 2)
+            .arg(obstacle.x, 0, 'f', 3)
+            .arg(obstacle.y, 0, 'f', 3);
+    }
+
+    return text;
+}
+
 // Overlay 위젯 정의
 // ============================================================
 

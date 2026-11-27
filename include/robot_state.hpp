@@ -18,6 +18,6 @@ struct OdometryMove
     double dx = 0.0; // 로봇 기준 전방 odometry 이동량
     double dy = 0.0; // 로봇 기준 좌측 odometry 이동량 
     double dyaw = 0.0; // 방향 변화량 
-}; 
+};
 
 #endif

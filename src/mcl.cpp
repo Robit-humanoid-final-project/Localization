@@ -50,11 +50,11 @@ void MCL::setYawFromImu(double world_yaw)
 {
     constexpr double PI = 3.14159265358979323846;
     static std::mt19937 gen(std::random_device{}());
-    std::normal_distribution<double> n(0.0, imu_yaw_sigma_);
+    std::normal_distribution<double> imu_noise(0.0, imu_yaw_sigma_);
 
-    for(auto& p : initialized_particles)
+    for(auto& particle : initialized_particles)
     {
-        p.yaw = std::remainder(world_yaw, 2.0*PI);
+        particle.yaw = std::remainder(world_yaw + imu_noise(gen), 2.0*PI);
     }
 }
 // prediction

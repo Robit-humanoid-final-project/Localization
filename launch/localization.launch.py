@@ -5,7 +5,7 @@ from launch_ros.actions import Node
 def generate_launch_description():
     localization = Node(
         package="localization",
-        executable="MyProject",
+        executable="localization",
         name="localization",
         output="screen",
         emulate_tty=True,

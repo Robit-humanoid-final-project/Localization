@@ -15,7 +15,7 @@ find_package(humanoid_interfaces REQUIRED)
 find_package(Threads REQUIRED)
 find_package(yaml-cpp REQUIRED)
 
-add_executable(MyProject
+add_executable(localization
     src/main.cpp
     src/subscribe/imu_subscriber.cpp
     src/subscribe/ik_coord_subscriber.cpp
@@ -29,24 +29,24 @@ add_executable(MyProject
     src/mainwindow.cpp 
 )
 
-target_include_directories(MyProject PRIVATE
+target_include_directories(localization PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-target_link_libraries(MyProject
+target_link_libraries(localization
     Qt6::Widgets
     Qt6::UiTools
     Threads::Threads
     yaml-cpp
 )
 
-ament_target_dependencies(MyProject
+ament_target_dependencies(localization
     ament_index_cpp
     rclcpp
     humanoid_interfaces
 )
 
-install(TARGETS MyProject
+install(TARGETS localization
     DESTINATION lib/${PROJECT_NAME}
 )
 
