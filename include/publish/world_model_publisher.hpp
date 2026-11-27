@@ -21,6 +21,7 @@ public:
 
 private:
     rclcpp::Publisher<humanoid_interfaces::msg::WorldModel>::SharedPtr publisher_;
+    rclcpp::Time last_object_publish_time_;
 };
 
 #endif
